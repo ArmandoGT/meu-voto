@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Emendas parlamentares — Meu Voto 2026</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="data/manifest.js"></script>
+<script src="data/camara.js" onerror="this.remove()"></script>
+<script src="data/emendas.js" onerror="this.remove()"></script>
+<script src="data/alero.js" onerror="this.remove()"></script>
+<script src="data/votacoes_federais.js" onerror="this.remove()"></script>
+</head>
+<body>
+<main class="wrap" id="conteudo">
+  <section class="tela ativa" id="tela-emendas">
+    <div class="pagina-cab">
+      <div>
+        <h1>Emendas parlamentares</h1>
+        <p class="muted small" id="em-fonte">Quem mandou dinheiro de emendas para cada município: deputados federais e senadores (Portal da Transparência) e deputados estaduais de Rondônia (Transparência RO).</p>
+      </div>
+    </div>
+
+    <section class="card" aria-labelledby="rot-em-filtros">
+      <h2 id="rot-em-filtros" class="sr-only">Filtros</h2>
+      <div class="em-filtros">
+        <div class="campo"><label for="em-mun">Município</label><select id="em-mun"></select></div>
+        <div class="campo"><label for="em-nivel">Origem</label><select id="em-nivel">
+          <option value="">Federal + estadual</option><option value="fed">Só federal (deputados federais e senadores)</option><option value="est">Só estadual (deputados estaduais RO)</option></select></div>
+        <div class="campo"><label for="em-ano">Ano</label><select id="em-ano"></select></div>
+        <label class="check small"><input type="checkbox" id="em-so-cand"> só quem é candidato em 2026</label>
+        <label class="check small"><input type="checkbox" id="em-com-coletivas" checked> incluir bancada, comissão e relator</label>
+      </div>
+    </section>
+
+    <div id="em-conteudo" aria-live="polite"></div>
+
+    <section class="card" style="margin-top:24px" aria-labelledby="rot-em-como">
+      <h2 id="rot-em-como">Como ler estes números</h2>
+      <div class="detalhes small">
+        <div><b>Destinado</b>Federal: valor empenhado (reservado no orçamento para aquele destino). Estadual: valor previsto/empenhado da emenda.</div>
+        <div><b>Pago / recebido</b>Dinheiro que saiu de fato. No federal inclui o que prefeitura, fundos municipais e entidades do município receberam, mesmo quando a emenda foi registrada como “Rondônia (UF)” ou “Múltiplo”.</div>
+        <div><b>Individual (Pix)</b>Transferência especial: o dinheiro cai direto na conta da prefeitura, sem objeto definido na origem.</div>
+        <div><b>Bancada, comissão e relator (RP9)</b>Emendas coletivas: não têm autor individual e não contam para nenhum candidato.</div>
+        <div><b>Estadual RO</b>Disponível a partir de 2023. Quando a localidade não vem informada, o município é identificado pela descrição do objeto (marcado como “pela descrição”).</div>
+        <div><b>Casamento com candidatos</b>Feito pelo nome do parlamentar. Erros podem ser corrigidos em data/emendas_alias.json.</div>
+      </div>
+    </section>
+  </section>
+</main>
+<script src="assets/app.js"></script>
+<script src="assets/emendas.js"></script>
+</body>
+</html>

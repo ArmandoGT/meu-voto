@@ -1,0 +1,11 @@
+{
+ "_comentario": "Correcoes manuais: \"NOME DO AUTOR COMO NA FONTE\": \"SQ_CANDIDATO\" (ou null para nao casar). Chaves com _ sao notas. Conferido em 2026-09-22 com a API da Camara (nome civil + data de nascimento).",
+ "_CARLOS MAGNO": "Ex-deputado federal (Camara id 160605) = CARLOS MAGNO RAMOS, nasc. 16/06/1958. Ha um homonimo candidato (Carlos Magno Sena Dias, 1973).",
+ "CARLOS MAGNO": "220002547338",
+ "_JOAO CARLOS BACELAR": "Deputado = JOAO CARLOS PAOLILO BACELAR FILHO, nasc. 08/10/1972. O autor 'BACELAR' e outro deputado (Joao Carlos Bacelar Batista, 1957).",
+ "JOAO CARLOS BACELAR": "50002532899",
+ "_RENAN CALHEIROS": "Senador = JOSE RENAN VASCONCELOS CALHEIROS (1955), candidato a senador; nao o filho Renan Filho (governador).",
+ "RENAN CALHEIROS": "20002553727",
+ "_VITAL DO REGO": "Vital do Rego Filho (senador ate 2015) nao e candidato em 2026; nao casar com Veneziano (irmao) nem com Ana Claudia.",
+ "VITAL DO REGO": null
+}
