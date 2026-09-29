@@ -79,7 +79,7 @@ funcionamento do sistema e não indicam voto em ninguém.
 ## Início rápido
 
 Os dados já processados (`data/*.js`, fotos dos candidatos de RO e a presidente) estão no repositório, com a base
-de 28/09/2026 (votações na Câmara e no Senado: 23/09/2026). Para só usar, basta clonar e abrir `meu-voto.html#perfil` no navegador, por duplo clique.
+de 28/09/2026. Para só usar, basta clonar e abrir `meu-voto.html#perfil` no navegador, por duplo clique.
 
 Para atualizar os dados ou gerar tudo do zero (requisitos: Python 3 e Windows com Microsoft Edge, usado pelo
 baixador automático e pelos testes de interface):
