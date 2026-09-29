@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Pesquisar candidatos — Meu Voto 2026</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="data/manifest.js"></script>
+<script src="data/camara.js" onerror="this.remove()"></script>
+<script src="data/emendas.js" onerror="this.remove()"></script>
+<script src="data/alero.js" onerror="this.remove()"></script>
+<script src="data/votacoes_federais.js" onerror="this.remove()"></script>
+</head>
+<body>
+<main class="wrap" id="conteudo">
+  <section class="tela ativa" id="tela-busca">
+    <div class="pagina-cab">
+      <div><h1>Pesquisar candidatos</h1><p class="muted small" id="fonte-info"></p></div>
+    </div>
+
+    <section class="card" aria-labelledby="rot-busca">
+      <div class="campo largo busca-principal" style="margin-bottom:12px">
+        <label for="q" id="rot-busca" class="sr-only">Busca por nome, nome de urna ou número</label>
+        <span class="ico-wrap"></span>
+        <input type="search" id="q" placeholder="Nome, nome de urna ou número (ex.: Furia, 2090)" autocomplete="off">
+      </div>
+      <div class="filtros" style="margin-bottom:12px">
+        <div class="campo"><label for="f-uf">Abrangência</label><select id="f-uf"></select></div>
+        <div class="campo"><label for="f-cargo">Cargo</label><select id="f-cargo"><option value="">Todos</option></select></div>
+        <div class="campo"><label for="f-partido">Partido</label><select id="f-partido"><option value="">Todos</option></select></div>
+        <div class="campo"><label for="f-sit">Situação do registro</label><select id="f-sit">
+          <option value="">Todas</option><option value="ok">Deferido</option><option value="warn">Pendente / outras</option><option value="bad">Indeferido / renúncia</option></select></div>
+        <div class="campo"><label for="f-ord">Ordenar por</label><select id="f-ord">
+          <option value="urna">Nome de urna</option><option value="nr">Número</option><option value="partido">Partido</option><option value="idade">Idade</option><option value="cargo">Cargo</option>
+          <option value="eleito">Vezes eleito</option><option value="bens">Bens declarados</option><option value="pctfoco" id="o-pctfoco">% de votos no meu município (eleição anterior)</option><option value="votos">Total de votos (eleição anterior)</option></select></div>
+      </div>
+      <details class="painel-filtros" id="filtros-avancados">
+        <summary><span class="ico-seta"></span>Mais filtros <span class="subtle small" id="filtros-ativos"></span></summary>
+        <div class="filtros" style="margin-top:12px">
+          <div class="campo"><label for="f-munhist">Já disputou eleição no município</label><input type="text" id="f-munhist" placeholder="ex.: nome do município" list="lista-munhist"><datalist id="lista-munhist"></datalist></div>
+          <div class="campo"><label for="f-pctfoco" id="rot-pctfoco">Mín. % de votos no meu município (eleição anterior)</label><input type="number" id="f-pctfoco" placeholder="ex.: 20" min="0" max="100" inputmode="numeric"></div>
+          <div class="campo"><label for="f-mun">Município de nascimento</label><input type="text" id="f-mun" placeholder="ex.: nome do município" list="lista-mun"><datalist id="lista-mun"></datalist></div>
+          <div class="campo"><label for="f-ufnasc">UF de nascimento</label><select id="f-ufnasc"><option value="">Todas</option></select></div>
+          <div class="campo"><label for="f-reel">Tenta reeleição</label><select id="f-reel"><option value="">Tanto faz</option><option value="1">Sim</option><option value="0">Não</option></select></div>
+          <div class="campo"><label for="f-eleito">Já foi eleito antes</label><select id="f-eleito"><option value="">Tanto faz</option><option value="1">Sim</option><option value="0">Não</option></select></div>
+          <div class="campo"><label for="f-motivo">Motivo de indeferimento</label><select id="f-motivo"><option value="">Tanto faz</option><option value="0">Sem motivo registrado</option><option value="1">Com motivo registrado</option></select></div>
+          <div class="campo"><label for="f-genero">Gênero</label><select id="f-genero"><option value="">Todos</option></select></div>
+          <div class="campo"><span class="rotulo" id="rot-idade">Idade</span><div class="linha" style="flex-wrap:nowrap"><input type="number" id="f-idmin" placeholder="mín" min="18" max="100" inputmode="numeric" aria-labelledby="rot-idade" aria-label="Idade mínima"><input type="number" id="f-idmax" placeholder="máx" min="18" max="100" inputmode="numeric" aria-label="Idade máxima"></div></div>
+          <div class="campo"><label for="f-instr">Escolaridade</label><select id="f-instr"><option value="">Todas</option></select></div>
+          <div class="campo"><label for="f-ocup">Ocupação contém</label><input type="text" id="f-ocup" placeholder="ex.: médico"></div>
+          <div class="campo"><label for="f-meus">Meus marcadores</label><select id="f-meus"><option value="">Todos</option><option value="fav">Favoritos</option><option value="tag">Com tag</option><option value="nota">Com nota</option></select></div>
+          <div class="campo hidden" id="campo-tag"><label for="f-tag">Tag</label><select id="f-tag"></select></div>
+        </div>
+      </details>
+      <div class="linha" style="margin-top:12px">
+        <button type="button" class="btn" id="btn-limpar-filtros">Limpar filtros</button>
+        <span class="subtle small" id="status-carga" role="status"></span>
+      </div>
+    </section>
+
+    <div class="resumo"><strong id="contador" role="status"></strong><span class="subtle small">Toque em um candidato para abrir a ficha completa.</span></div>
+    <div class="grade" id="grade"></div>
+    <div class="paginacao"><button type="button" class="btn" id="btn-mais" style="display:none">Carregar mais</button></div>
+  </section>
+</main>
+<script src="assets/app.js"></script>
+<script src="assets/busca.js"></script>
+</body>
+</html>
