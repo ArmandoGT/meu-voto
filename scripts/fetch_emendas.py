@@ -349,7 +349,12 @@ def carregar_parlamentares(baixar_de_novo):
     por_nasc = collections.defaultdict(list)
     try:
         if baixar_de_novo or not os.path.exists(CSV_CAMARA):
-            baixar(URL_CAMARA_CSV, CSV_CAMARA)
+            try:
+                baixar(URL_CAMARA_CSV, CSV_CAMARA)
+            except Exception as e:  # noqa: BLE001 - API fora do ar: vale a copia ja baixada
+                if not os.path.exists(CSV_CAMARA):
+                    raise
+                print("  AVISO: Camara indisponivel (%s); usando a copia local de %s" % (e, CSV_CAMARA))
         with open(CSV_CAMARA, encoding="utf-8-sig", newline="") as f:
             for r in csv.DictReader(f, delimiter=";"):
                 if r.get("dataNascimento"):
@@ -357,8 +362,15 @@ def carregar_parlamentares(baixar_de_novo):
         cache = {}
         if os.path.exists(JSON_SENADO):
             cache = json.load(open(JSON_SENADO, encoding="utf-8"))
+        lista = None
         if baixar_de_novo or not cache:
-            lista = _get_json(URL_SENADO_LISTA)["ListaParlamentarLegislatura"]["Parlamentares"]["Parlamentar"]
+            try:
+                lista = _get_json(URL_SENADO_LISTA)["ListaParlamentarLegislatura"]["Parlamentares"]["Parlamentar"]
+            except Exception as e:  # noqa: BLE001 - API fora do ar: vale a copia ja baixada
+                if not cache:
+                    raise
+                print("  AVISO: Senado indisponivel (%s); usando a copia local de %s (%d senadores)" % (e, JSON_SENADO, len(cache)))
+        if lista is not None:
             faltam = [p["IdentificacaoParlamentar"] for p in lista if p["IdentificacaoParlamentar"]["CodigoParlamentar"] not in cache]
             print("  Senado: %d senadores/suplentes, buscando %d detalhes..." % (len(lista), len(faltam)))
             for i, ident in enumerate(faltam, 1):
