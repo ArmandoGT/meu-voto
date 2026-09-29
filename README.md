@@ -28,7 +28,7 @@ apenas Rondônia.
 
 ## Principais funcionalidades
 
-- **Pesquisa** dos 20.061 candidatos de 2026 do Brasil, com filtros por UF, cargo, partido, situação,
+- **Pesquisa** dos 20.063 candidatos de 2026 do Brasil, com filtros por UF, cargo, partido, situação,
   município onde já disputou eleição, idade, escolaridade, ocupação e outros.
 - **Ficha completa do candidato**: foto oficial, situação do registro, vice/suplentes, histórico eleitoral,
   votação por município na eleição anterior, bens declarados, certidões criminais e plano de governo (PDF),
@@ -69,7 +69,7 @@ apenas Rondônia.
 | **Perfil** — o eleitor escolhe onde vota; os critérios locais passam a usar esse município. | **Pesquisa** — todos os candidatos, com filtros e ficha completa. |
 | ![Emendas parlamentares destinadas a Ariquemes](docs/img/emendas.png) | ![Votações nominais da ALE-RO](docs/img/votacoes.png) |
 | **Emendas** — quem destinou e quem efetivamente pagou recursos ao município. | **Votações** — o voto de cada parlamentar, com link para a fonte oficial. |
-| ![Colinha para a urna](docs/img/colinha.png) | ![Versão para celular](docs/img/celular.png) |
+| ![Colinha para a urna, versão celular](docs/img/colinha-celular.png) | ![Versão para celular](docs/img/celular.png) |
 | **Colinha** — números na ordem da urna, para imprimir ou compartilhar. | **Celular** — arquivo único que funciona sem internet. |
 
 Imagens geradas com os dados oficiais de setembro de 2026 e o Perfil em Ariquemes/RO. Na Emendas e na
@@ -79,7 +79,7 @@ funcionamento do sistema e não indicam voto em ninguém.
 ## Início rápido
 
 Os dados já processados (`data/*.js`, fotos dos candidatos de RO e a presidente) estão no repositório, com a base
-de 22/09/2026. Para só usar, basta clonar e abrir `meu-voto.html#perfil` no navegador, por duplo clique.
+de 28/09/2026 (votações na Câmara e no Senado: 23/09/2026). Para só usar, basta clonar e abrir `meu-voto.html#perfil` no navegador, por duplo clique.
 
 Para atualizar os dados ou gerar tudo do zero (requisitos: Python 3 e Windows com Microsoft Edge, usado pelo
 baixador automático e pelos testes de interface):
@@ -103,7 +103,7 @@ DivulgaCandContas.
 | Arquivo | O que faz |
 |---|---|
 | `mobile/meu-voto-mobile.html` | **Versão celular, offline**: um único arquivo com tudo que o desktop tem (pesquisa, ficha completa, critérios, ranking, colinha para imprimir/compartilhar, denúncias, fontes, dados da Câmara, emendas). RO + presidente com fotos: cerca de 14 MB. `mobile/meu-voto-mobile-brasil.html`: idem com as 27 UFs (cerca de 74 MB, carregadas sob demanda). Gerados por `scripts/build_mobile.py`. |
-| `index.html` | **Pesquisa geral**: todos os 20.061 candidatos do Brasil, com busca por nome/número e filtros (UF, cargo, partido, situação, reeleição, gênero, município/UF de nascimento, **município onde já disputou eleição**, já foi eleito, motivo de indeferimento, idade, escolaridade, ocupação, meus marcadores). Clique no candidato para ver a ficha completa. |
+| `index.html` | **Pesquisa geral**: todos os 20.063 candidatos do Brasil, com busca por nome/número e filtros (UF, cargo, partido, situação, reeleição, gênero, município/UF de nascimento, **município onde já disputou eleição**, já foi eleito, motivo de indeferimento, idade, escolaridade, ocupação, meus marcadores). Clique no candidato para ver a ficha completa. |
 | `meu-voto.html` | Três telas, as mesmas do celular (menu no topo: **Meu voto · Colinha · Mais**, mais Pesquisar e Emendas). **Meu voto**: abas por cargo (com o nº de vagas real), painel de critérios com pesos, ranking com score e explicação, botão "Escolher". **Colinha**: cartão no padrão da "colinha" do e-Título — ordem da urna, dígitos em caixas, foto, nome, partido, vice/suplentes; toque em um item para abrir a ficha; botões **Imprimir / salvar PDF** (A4, sem cabeçalho do navegador) e **Compartilhar** (menu de compartilhamento do celular ou área de transferência). **Mais**: denúncias Pardal e fontes externas. Em janelas estreitas o menu vai para a barra inferior, como no celular. |
 | `emendas.html` | **Emendas parlamentares**: escolha um município de RO (abre no município do seu Perfil) e veja **quem mandou dinheiro de emendas para lá** — ranking por parlamentar (destinado × pago/recebido), destaque para quem é candidato em 2026, e a lista item a item com ano, área, objeto e quem recebeu. Filtros: federal/estadual, ano, só candidatos, com/sem emendas coletivas (bancada, comissão, relator). Gerado por `scripts/fetch_emendas.py`. |
 | `votacoes.html` | **Votações**: como votaram os parlamentares de RO. Quatro modos: ALE-RO votações nominais (voto de cada deputado estadual), ALE-RO leis sem voto individual (votação simbólica, desde 2023, com autoria e declarações oficiais), Câmara dos Deputados e Senado Federal (candidatos de RO que são ou foram deputados federais/senadores). Filtros por parlamentar, tipo, ano e texto. Só mostra o que as fontes oficiais registram, sem classificar votos como bons ou ruins. Gerado por `scripts/fetch_alero.py` e `scripts/fetch_votacoes_federais.py`. |
