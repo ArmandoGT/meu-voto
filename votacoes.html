@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Votações — Meu Voto 2026</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="data/manifest.js"></script>
+<script src="data/camara.js" onerror="this.remove()"></script>
+<script src="data/emendas.js" onerror="this.remove()"></script>
+<script src="data/alero.js" onerror="this.remove()"></script>
+<script src="data/votacoes_federais.js" onerror="this.remove()"></script>
+</head>
+<body>
+<main class="wrap" id="conteudo">
+  <section class="tela ativa" id="tela-votacoes">
+    <div class="pagina-cab">
+      <div>
+        <h1>Como votaram os parlamentares de RO</h1>
+        <p class="muted small">Assembleia Legislativa de RO, Câmara dos Deputados e Senado: o voto de cada parlamentar nas votações nominais e as leis decididas sem voto individual registrado. Dados oficiais de cada Casa, sem interpretação: o sistema mostra o voto, a decisão é sua.</p>
+      </div>
+    </div>
+
+    <div class="vt-modos" role="group" aria-label="Tipo de votação">
+      <button type="button" class="btn" data-modo="nominal" aria-pressed="true">ALE-RO: votações nominais <span class="small">voto de cada deputado estadual</span></button>
+      <button type="button" class="btn" data-modo="leis" aria-pressed="false">ALE-RO: leis sem voto individual <span class="small">votação simbólica, desde 2023</span></button>
+      <button type="button" class="btn" data-modo="camara" aria-pressed="false">Câmara dos Deputados <span class="small">candidatos de RO que são ou foram deputados federais</span></button>
+      <button type="button" class="btn" data-modo="senado" aria-pressed="false">Senado Federal <span class="small">candidatos de RO que são ou foram senadores</span></button>
+    </div>
+
+    <section class="card" aria-labelledby="rot-vt-filtros">
+      <h2 id="rot-vt-filtros" class="sr-only">Filtros</h2>
+      <div class="em-filtros">
+        <div class="campo"><label for="vt-texto">Buscar no assunto ou número</label><input type="search" id="vt-texto" placeholder="ex.: servidores, 1243, ICMS"></div>
+        <div class="campo"><label for="vt-dep" id="vt-rot-dep">Deputado</label><select id="vt-dep"></select></div>
+        <div class="campo"><label for="vt-tipo">Tipo de matéria</label><select id="vt-tipo"></select></div>
+        <div class="campo"><label for="vt-ano" id="vt-rot-ano">Ano da votação</label><select id="vt-ano"></select></div>
+      </div>
+    </section>
+
+    <div id="vt-conteudo" aria-live="polite"></div>
+
+    <section class="card" style="margin-top:24px" aria-labelledby="rot-vt-como">
+      <h2 id="rot-vt-como">Como ler estas votações</h2>
+      <div class="detalhes small">
+        <div><b>Votação nominal</b>Cada deputado registra o voto no painel, e o registro fica público. Só essas votações aparecem aqui.</div>
+        <div><b>Votação simbólica</b>O presidente declara o resultado sem contar os votos um a um, e não fica registrado quem votou como. É o caso da maioria dos projetos de lei ordinária, como o PL 1243/2025 (Lei 6.328/2026, transação de dívidas com o Estado).</div>
+        <div><b>Presença não é voto</b>Estar na lista de presença da sessão não significa ter votado a favor. A ALE-RO registrou em ata (nº 252, de 09/02/2026) um caso de deputado presente na sessão que não participou da votação.</div>
+        <div><b>Vetos</b>O governador vetou uma lei, e os deputados decidem se mantêm ou derrubam o veto. Nos placares da ALE-RO, <strong>Sim = manter o veto</strong> e <strong>Não = derrubar o veto</strong>. Derrubar exige maioria absoluta (13 dos 24 deputados). Isso confere em 710 dos 712 vetos registrados; nos 2 restantes o placar não bate com o resultado, e a votação aparece marcada para conferir na fonte.</div>
+        <div><b>Ausente / Não votou / Sem registro</b>Como a própria ALE-RO registrou. "Sem registro" é o valor "-1" na fonte.</div>
+        <div><b>Atraso</b>A ALE-RO lança os votos no sistema algum tempo depois da sessão. As votações mais recentes podem ainda não estar aqui.</div>
+        <div><b>Câmara e Senado</b>Votos com o rótulo oficial de cada Casa: Sim, Não, Abstenção, Obstrução, "Artigo 17" (quem preside a sessão não vota) e, no Senado, ausências e licenças justificadas e "Votou" nas votações secretas, que registram só a participação. Só aparecem os candidatos de RO em 2026; o placar é o da votação inteira.</div>
+        <div><b>Deputado x candidato</b>O deputado é ligado ao candidato de 2026 pelo nome civil completo (TSE x ALE-RO). Correções manuais ficam em data/alero_alias.json.</div>
+      </div>
+    </section>
+  </section>
+</main>
+<script src="assets/app.js"></script>
+<script src="assets/votacoes.js"></script>
+</body>
+</html>

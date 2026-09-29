@@ -1,0 +1,293 @@
+{
+  "_como_usar": "Posicoes de deputados sobre votacoes SEM voto individual registrado (votacao simbolica). So entra o que estiver em documento OFICIAL da ALE-RO (ata, notas taquigraficas, registro no SAPL), com o link. Nada de noticia, rede social ou deducao a partir da lista de presenca. 'parlamentar' = id do deputado no SAPL (sapl.al.ro.leg.br/parlamentar/<id>); 'materia' = id da materia no SAPL. O texto descreve o que o documento diz, sem adjetivos. Levantamento de 24/09/2026: as 242 atas de sessoes desde 01/02/2023 foram lidas (texto do PDF ou OCR) por scripts/fetch_alero_atas.py, e cada trecho foi conferido na ata antes de entrar aqui (valores em R$ da ata = ementa da lei).",
+  "declaracoes": [
+    {
+      "materia": 52292,
+      "parlamentar": "290",
+      "data": "2026-02-09",
+      "texto": "Pediu que constasse em ata que não participou da votação: entrou na sessão (remota) às 18h41, quando o projeto, primeiro item da pauta, já tinha sido votado. Afirmou que a lista divulgada nas redes sociais como de votação é a lista de presença.",
+      "fonte": "Ata nº 252, 1ª Sessão Extraordinária da 22ª Sessão Legislativa Extraordinária (09/02/2026), folhas 2 e 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1618/ata/ata_da_1a_sessao_extraordinariada_22a_sessao_leg_extraordinaria__-02-2026.pdf"
+    },
+    {
+      "materia": 34332,
+      "parlamentar": "273",
+      "data": "2023-10-25",
+      "texto": "Declaração do gabinete do deputado lida em plenário: \"manifestação e voto contrário (NÃO)\" ao projeto, aprovado em 10/10/2023 sem registro de voto individual.",
+      "fonte": "Ata nº 083, 36ª Sessão Ordinária da 1ª Sessão Legislativa da 11ª Legislatura (25/10/2023), folha 2",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1485/ata/36a_sessao_ordinaria_25-10-2023.pdf"
+    },
+    {
+      "materia": 34549,
+      "parlamentar": "291",
+      "data": "2023-10-31",
+      "texto": "Votou contra o parecer do relator em plenário (favorável ao projeto e contrário à emenda do Deputado Luizinho Goebel) e a ata registra o seu voto contrário ao projeto, que foi aprovado.",
+      "fonte": "Ata nº 086, 37ª Sessão Ordinária da 1ª Sessão Legislativa da 11ª Legislatura (31/10/2023), folhas 11 e 12",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1486/ata/37a_sessao_ordinaria_31-10-2023.pdf"
+    },
+    {
+      "materia": 34549,
+      "parlamentar": "293",
+      "data": "2023-10-31",
+      "texto": "Votou contra o parecer do relator em plenário, que era favorável ao projeto e rejeitava a emenda apresentada pelo Deputado Luizinho Goebel. Na votação do projeto, aprovado em seguida, a ata registra voto contrário só do Deputado Delegado Camargo.",
+      "fonte": "Ata nº 086, 37ª Sessão Ordinária da 1ª Sessão Legislativa da 11ª Legislatura (31/10/2023), folhas 11 e 12",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1486/ata/37a_sessao_ordinaria_31-10-2023.pdf"
+    },
+    {
+      "materia": 34549,
+      "parlamentar": "273",
+      "data": "2023-10-31",
+      "texto": "Votou contra o parecer do relator em plenário, que era favorável ao projeto e rejeitava a emenda apresentada pelo Deputado Luizinho Goebel. Na votação do projeto, aprovado em seguida, a ata registra voto contrário só do Deputado Delegado Camargo.",
+      "fonte": "Ata nº 086, 37ª Sessão Ordinária da 1ª Sessão Legislativa da 11ª Legislatura (31/10/2023), folhas 11 e 12",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1486/ata/37a_sessao_ordinaria_31-10-2023.pdf"
+    },
+    {
+      "materia": 34488,
+      "parlamentar": "291",
+      "data": "2023-10-31",
+      "texto": "Votou contra o parecer do relator em plenário, desfavorável ao projeto por inconstitucionalidade. O parecer foi aprovado e o projeto, do qual o deputado é um dos autores, foi rejeitado.",
+      "fonte": "Ata nº 086, 37ª Sessão Ordinária da 1ª Sessão Legislativa da 11ª Legislatura (31/10/2023), folha 12",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1486/ata/37a_sessao_ordinaria_31-10-2023.pdf"
+    },
+    {
+      "materia": 34488,
+      "parlamentar": "293",
+      "data": "2023-10-31",
+      "texto": "Votou contra o parecer do relator em plenário, desfavorável ao projeto por inconstitucionalidade. O parecer foi aprovado e o projeto, do qual o deputado é um dos autores, foi rejeitado.",
+      "fonte": "Ata nº 086, 37ª Sessão Ordinária da 1ª Sessão Legislativa da 11ª Legislatura (31/10/2023), folha 12",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1486/ata/37a_sessao_ordinaria_31-10-2023.pdf"
+    },
+    {
+      "materia": 34488,
+      "parlamentar": "273",
+      "data": "2023-10-31",
+      "texto": "Votou contra o parecer do relator em plenário, desfavorável ao projeto por inconstitucionalidade. O parecer foi aprovado e o projeto, do qual o deputado é um dos autores, foi rejeitado.",
+      "fonte": "Ata nº 086, 37ª Sessão Ordinária da 1ª Sessão Legislativa da 11ª Legislatura (31/10/2023), folha 12",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1486/ata/37a_sessao_ordinaria_31-10-2023.pdf"
+    },
+    {
+      "materia": 34550,
+      "parlamentar": "291",
+      "data": "2023-12-13",
+      "texto": "A ata registra o voto contrário do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 096, 43ª Sessão Extraordinária da 1ª Sessão Legislativa da 11ª Legislatura (13/12/2023), folhas 3 e 4",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1496/ata/ata_da_43a_sessao_extra_1a_sessao_legis_ordinaria_11a_legislatura_.pdf"
+    },
+    {
+      "materia": 35557,
+      "parlamentar": "291",
+      "data": "2023-12-13",
+      "texto": "A ata registra o voto contrário do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 096, 43ª Sessão Extraordinária da 1ª Sessão Legislativa da 11ª Legislatura (13/12/2023), folha 4",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1496/ata/ata_da_43a_sessao_extra_1a_sessao_legis_ordinaria_11a_legislatura_.pdf"
+    },
+    {
+      "materia": 38386,
+      "parlamentar": "291",
+      "data": "2024-04-09",
+      "texto": "A ata registra o voto contrário do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 115, 2ª Sessão Extraordinária da 2ª Sessão Legislativa da 11ª Legislatura (09/04/2024), folha 4",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1534/ata/ata_da_02_sessao_ext_2o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 39218,
+      "parlamentar": "291",
+      "data": "2024-05-23",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 122, 2ª Itinerante da 2ª Sessão Legislativa da 11ª Legislatura (23/05/2024), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1520/ata/ata_da_ses.ext.iti_ji_parana_2024.pdf"
+    },
+    {
+      "materia": 39353,
+      "parlamentar": "291",
+      "data": "2024-05-23",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 122, 2ª Itinerante da 2ª Sessão Legislativa da 11ª Legislatura (23/05/2024), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1520/ata/ata_da_ses.ext.iti_ji_parana_2024.pdf"
+    },
+    {
+      "materia": 39354,
+      "parlamentar": "291",
+      "data": "2024-05-23",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 122, 2ª Itinerante da 2ª Sessão Legislativa da 11ª Legislatura (23/05/2024), folha 4",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1520/ata/ata_da_ses.ext.iti_ji_parana_2024.pdf"
+    },
+    {
+      "materia": 39355,
+      "parlamentar": "291",
+      "data": "2024-05-23",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 122, 2ª Itinerante da 2ª Sessão Legislativa da 11ª Legislatura (23/05/2024), folha 4",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1520/ata/ata_da_ses.ext.iti_ji_parana_2024.pdf"
+    },
+    {
+      "materia": 39356,
+      "parlamentar": "291",
+      "data": "2024-05-23",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 122, 2ª Itinerante da 2ª Sessão Legislativa da 11ª Legislatura (23/05/2024), folha 4",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1520/ata/ata_da_ses.ext.iti_ji_parana_2024.pdf"
+    },
+    {
+      "materia": 39357,
+      "parlamentar": "291",
+      "data": "2024-05-23",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 122, 2ª Itinerante da 2ª Sessão Legislativa da 11ª Legislatura (23/05/2024), folhas 4 e 5",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1520/ata/ata_da_ses.ext.iti_ji_parana_2024.pdf"
+    },
+    {
+      "materia": 39358,
+      "parlamentar": "291",
+      "data": "2024-05-23",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 122, 2ª Itinerante da 2ª Sessão Legislativa da 11ª Legislatura (23/05/2024), folha 5",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1520/ata/ata_da_ses.ext.iti_ji_parana_2024.pdf"
+    },
+    {
+      "materia": 41260,
+      "parlamentar": "291",
+      "data": "2025-01-22",
+      "texto": "A ata registra o voto contrário do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 174, 2ª Sessão Extraordinária da 3ª Sessão Legislativa da 11ª Legislatura (22/01/2025), folha 2",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1560/ata/ata_da_2a_sessao_extraordinariada_12a_sessao_leg_extraordinaria.pdf"
+    },
+    {
+      "materia": 41268,
+      "parlamentar": "291",
+      "data": "2025-01-22",
+      "texto": "A ata registra o voto contrário do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 174, 2ª Sessão Extraordinária da 3ª Sessão Legislativa da 11ª Legislatura (22/01/2025), folha 2",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1560/ata/ata_da_2a_sessao_extraordinariada_12a_sessao_leg_extraordinaria.pdf"
+    },
+    {
+      "materia": 40373,
+      "parlamentar": "291",
+      "data": "2025-04-01",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 185, 6ª Sessão Ordinária da 3ª Sessão Legislativa da 11ª Legislatura (01/04/2025), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1567/ata/ata_da_06_sessao_ord_3o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 40379,
+      "parlamentar": "291",
+      "data": "2025-04-01",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 185, 6ª Sessão Ordinária da 3ª Sessão Legislativa da 11ª Legislatura (01/04/2025), folha 4",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1567/ata/ata_da_06_sessao_ord_3o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 40380,
+      "parlamentar": "291",
+      "data": "2025-04-01",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 185, 6ª Sessão Ordinária da 3ª Sessão Legislativa da 11ª Legislatura (01/04/2025), folha 4",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1567/ata/ata_da_06_sessao_ord_3o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 44103,
+      "parlamentar": "291",
+      "data": "2025-04-01",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 185, 6ª Sessão Ordinária da 3ª Sessão Legislativa da 11ª Legislatura (01/04/2025), folha 4",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1567/ata/ata_da_06_sessao_ord_3o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 44103,
+      "parlamentar": "261",
+      "data": "2025-04-01",
+      "texto": "A ata registra o voto contrário do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 185, 6ª Sessão Ordinária da 3ª Sessão Legislativa da 11ª Legislatura (01/04/2025), folha 4",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1567/ata/ata_da_06_sessao_ord_3o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 46210,
+      "parlamentar": "291",
+      "data": "2025-05-20",
+      "texto": "A ata registra o voto contrário do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 196, 6ª Sessão Extraordinária da 3ª Sessão Legislativa da 11ª Legislatura (20/05/2025), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1578/ata/ata_da_06_sessao_ext_3o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 47822,
+      "parlamentar": "291",
+      "data": "2025-05-23",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 197, 7ª Sessão Extraordinária da 3ª Sessão Legislativa da 11ª Legislatura (23/05/2025), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1580/ata/ata_da_07_sessao_ext_3o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 54215,
+      "parlamentar": "291",
+      "data": "2026-04-09",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 268, 8ª Sessão Extraordinária da 4ª Sessão Legislativa da 11ª Legislatura (09/04/2026), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1644/ata/ata_da_08_sessao_ext_4o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 55011,
+      "parlamentar": "291",
+      "data": "2026-04-09",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 268, 8ª Sessão Extraordinária da 4ª Sessão Legislativa da 11ª Legislatura (09/04/2026), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1644/ata/ata_da_08_sessao_ext_4o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 55012,
+      "parlamentar": "291",
+      "data": "2026-04-09",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 268, 8ª Sessão Extraordinária da 4ª Sessão Legislativa da 11ª Legislatura (09/04/2026), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1644/ata/ata_da_08_sessao_ext_4o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 50276,
+      "parlamentar": "291",
+      "data": "2026-04-14",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 269, 8ª Sessão Ordinária da 4ª Sessão Legislativa da 11ª Legislatura (14/04/2026), folha 2",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1629/ata/ata_da_08_sessao_ord_4o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 54210,
+      "parlamentar": "291",
+      "data": "2026-04-14",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 269, 8ª Sessão Ordinária da 4ª Sessão Legislativa da 11ª Legislatura (14/04/2026), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1629/ata/ata_da_08_sessao_ord_4o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 54216,
+      "parlamentar": "291",
+      "data": "2026-04-14",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, que foi aprovado sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 269, 8ª Sessão Ordinária da 4ª Sessão Legislativa da 11ª Legislatura (14/04/2026), folha 5",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1629/ata/ata_da_08_sessao_ord_4o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 56889,
+      "parlamentar": "291",
+      "data": "2026-06-30",
+      "texto": "A ata registra a abstenção do deputado na votação deste projeto, aprovado com duas emendas sem registro de voto individual dos demais.",
+      "fonte": "Ata nº 292, 21ª Sessão Ordinária da 4ª Sessão Legislativa da 11ª Legislatura (30/06/2026), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1653/ata/ata_da_21_sessao_ord_4o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 57338,
+      "parlamentar": "265",
+      "data": "2026-06-26",
+      "texto": "Votou contra o requerimento que levou o projeto à votação naquela sessão (segundo a ata, havia pedidos de informação sobre a matéria que, para os autores, não tinham sido respondidos por completo). O requerimento foi aprovado e o projeto foi aprovado em seguida, em votação simbólica, sem registro de voto individual.",
+      "fonte": "Ata nº 291, 16ª Sessão Extraordinária da 4ª Sessão Legislativa da 11ª Legislatura (26/06/2026), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1655/ata/ata_da_16_sessao_ext_4o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    },
+    {
+      "materia": 57338,
+      "parlamentar": "291",
+      "data": "2026-06-26",
+      "texto": "Votou contra o requerimento que levou o projeto à votação naquela sessão (segundo a ata, havia pedidos de informação sobre a matéria que, para os autores, não tinham sido respondidos por completo). O requerimento foi aprovado e o projeto foi aprovado em seguida, em votação simbólica, sem registro de voto individual.",
+      "fonte": "Ata nº 291, 16ª Sessão Extraordinária da 4ª Sessão Legislativa da 11ª Legislatura (26/06/2026), folha 3",
+      "url": "http://sapl.al.ro.leg.br/media/sapl/public/sessaoplenaria/1655/ata/ata_da_16_sessao_ext_4o_sessao_legis_ordinaria_11a_legislatura.pdf"
+    }
+  ]
+}
