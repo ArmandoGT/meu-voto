@@ -1,0 +1,27 @@
+# Dados brutos baixados das fontes oficiais (~1,6 GB) — recriados por scripts/baixar_tse.py e fetch_*.py
+raw/
+
+# PDFs extraídos do TSE (certidões ~313 MB, planos de governo ~24 MB) — recriados por scripts/build_data.py
+data/certidoes/
+data/propostas/
+
+# Versão celular gerada (14 MB / 74 MB) — recriada por scripts/build_mobile.py
+mobile/
+
+# Registros de execução e saídas dos testes
+logs/
+scripts/testes/saida/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Sistema / editores
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+*.tmp
