@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Meu voto — Meu Voto 2026</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="data/manifest.js"></script>
+<script src="data/camara.js" onerror="this.remove()"></script>
+<script src="data/emendas.js" onerror="this.remove()"></script>
+<script src="data/alero.js" onerror="this.remove()"></script>
+<script src="data/votacoes_federais.js" onerror="this.remove()"></script>
+<script src="data/denuncias.js" onerror="this.remove()"></script>
+<script src="data/municipios.js" onerror="this.remove()"></script>
+</head>
+<body>
+<main class="wrap" id="conteudo">
+  <section class="tela ativa" id="tela-voto">
+    <div class="pagina-cab no-print">
+      <div>
+        <h1>Meu voto</h1>
+        <p class="muted small">Defina seus critérios, veja o ranking por cargo e marque suas escolhas. Tudo fica salvo neste navegador.</p>
+      </div>
+      <div class="linha">
+        <div class="campo"><label for="uf-foco">Meu estado</label><select id="uf-foco" class="controle" style="width:auto"></select></div>
+        <button type="button" class="btn" id="btn-exportar" title="Salva favoritos, notas, tags, critérios e escolhas em um arquivo JSON"><span class="ico-baixar"></span>Exportar</button>
+        <label class="btn" for="arq-importar" title="Restaura um JSON exportado"><span class="ico-subir"></span>Importar<input type="file" id="arq-importar" accept="application/json" class="sr-only"></label>
+        <button type="button" class="btn perigo" id="btn-limpar">Zerar tudo</button>
+        <a class="btn primario" href="#colinha" data-tela="tela-cola" id="atalho-colinha"><span class="ico-urna"></span>Ver colinha</a>
+      </div>
+    </div>
+
+    <div class="bloco small no-print perfil-aviso" id="perfil-aviso" hidden>Os critérios locais (onde o candidato já disputou eleição, nasceu, teve votos e mandou emendas) ficam desligados até você informar seu município no <a href="#perfil" data-tela="tela-perfil">Perfil</a>.</div>
+
+    <div class="abas no-print" id="abas" role="tablist" aria-label="Cargos"></div>
+
+    <div class="layout">
+      <aside class="card painel no-print" aria-labelledby="rot-criterios">
+        <div class="resumo" style="margin:0 0 6px"><h2 id="rot-criterios">Critérios</h2><button type="button" class="btn mini" id="btn-criterios-padrao" title="Volta os pesos e configurações ao padrão">Restaurar padrão</button></div>
+        <p class="small muted" style="margin:0 0 8px">Ligue ou desligue cada critério e ajuste o peso (0–5). O score é a média ponderada dos critérios ativos. Um critério que <b>não se aplica</b> a um candidato (ex.: emendas, para quem nunca teve mandato) sai da média dele, em vez de contar como zero. Critérios de <b>exclusão</b> removem o candidato da lista.</p>
+        <div id="criterios"></div>
+      </aside>
+
+      <section aria-labelledby="rank-titulo">
+        <div class="resumo no-print">
+          <strong id="rank-titulo" role="status"></strong>
+          <div class="linha">
+            <label for="rank-q" class="sr-only">Filtrar ranking por nome ou número</label>
+            <input type="search" id="rank-q" placeholder="Filtrar por nome/número" style="max-width:220px">
+            <label class="check small"><input type="checkbox" id="rank-so-fav"> só favoritos</label>
+            <label for="rank-limite" class="sr-only">Quantidade exibida</label>
+            <select id="rank-limite" style="width:auto"><option value="30">Top 30</option><option value="100">Top 100</option><option value="0">Todos</option></select>
+          </div>
+        </div>
+        <div class="rank" id="rank"></div>
+      </section>
+    </div>
+
+  </section>
+
+  <section class="tela" id="tela-cola">
+    <div class="pagina-cab"><div><h1>Colinha para a urna</h1><p class="muted small">Seus escolhidos na ordem em que a urna pede. Imprima, salve em PDF ou compartilhe.</p></div></div>
+    <section class="cola" id="cola" aria-labelledby="rot-cola" style="margin-top:0">
+      <div class="resumo no-print"><h2 id="rot-cola" class="sr-only">Minha colinha</h2>
+        <div class="colinha-acoes">
+          <button type="button" class="btn primario" id="btn-imprimir"><span class="ico-imprimir"></span>Imprimir / salvar PDF</button>
+          <button type="button" class="btn" id="btn-compartilhar"><span class="ico-externo"></span>Compartilhar</button>
+          <a class="btn" href="#voto" data-tela="tela-voto" id="atalho-voto"><span class="ico-voto"></span>Alterar escolhas</a>
+        </div></div>
+      <div id="colinha-inline"></div>
+      <p class="small muted" style="margin-top:10px">Toque em um item para abrir a ficha do candidato. A urna pede os votos nesta ordem: Deputado Federal → Deputado Estadual → Senador (2 votos) → Governador → Presidente.</p>
+    </section>
+
+  </section>
+
+  <section class="tela" id="tela-perfil">
+    <div class="pagina-cab"><div><h1>Meu perfil</h1><p class="muted small">Onde você vota e o que conta no seu cálculo. Fica salvo só neste aparelho; ninguém mais vê.</p></div></div>
+
+    <section class="card" aria-labelledby="rot-pf-local">
+      <h2 id="rot-pf-local">Onde você vota</h2>
+      <div class="em-filtros">
+        <div class="campo"><label for="pf-uf">Estado</label><select id="pf-uf"></select></div>
+        <div class="campo"><label for="pf-mun">Município</label><select id="pf-mun"></select></div>
+      </div>
+      <p class="small" id="pf-status" role="status"></p>
+      <p class="small muted">Usado nos critérios locais do Meu voto (já disputou eleição, nasceu, teve votos e mandou emendas para o seu município), nas etiquetas das fichas, na tela Emendas e nas denúncias do seu município.</p>
+    </section>
+
+    <section class="card" style="margin-top:16px" aria-labelledby="rot-pf-crit">
+      <h2 id="rot-pf-crit">O que conta no seu cálculo</h2>
+      <p class="small muted">O score de cada candidato é a média ponderada dos critérios ligados, de 0 a 100. Um critério que não se aplica a um candidato sai da média dele. Você liga, desliga e muda os pesos no Meu voto.</p>
+      <div id="pf-criterios" class="pf-criterios"></div>
+      <div class="links-doc"><a class="btn" href="#voto" data-tela="tela-voto">Ajustar critérios e pesos</a></div>
+    </section>
+
+    <section class="card" style="margin-top:16px" aria-labelledby="rot-pf-pos">
+      <h2 id="rot-pf-pos">Suas posições nas votações</h2>
+      <p class="small muted">Na tela Votações, marque como você votaria nas votações nominais da ALE-RO, da Câmara e do Senado. O critério "Vota como eu" compara com o voto registrado de cada candidato que era parlamentar: só conta onde ele votou Sim ou Não. Ninguém vê suas marcações além de você.</p>
+      <div id="pf-posicoes"></div>
+      <div class="links-doc"><a class="btn" href="votacoes.html#votacoes" data-tela="tela-votacoes">Marcar posições nas votações</a></div>
+    </section>
+
+    <section class="card" style="margin-top:16px" aria-labelledby="rot-pf-dados">
+      <h2 id="rot-pf-dados">Seus dados e mais</h2>
+      <p class="small muted">Perfil, posições, favoritos, notas, tags, critérios e escolhas ficam só neste navegador. Para levar a outro aparelho, use Exportar e Importar no Meu voto.</p>
+      <div class="links-doc"><a class="btn" href="#mais" data-tela="tela-mais">Denúncias eleitorais e onde pesquisar mais</a></div>
+    </section>
+  </section>
+
+  <section class="tela" id="tela-mais">
+    <div class="pagina-cab"><div><h1>Mais</h1><p class="muted small">Denúncias eleitorais e onde pesquisar fora do TSE.</p></div></div>
+    <section class="card no-print painel-denuncias" id="painel-denuncias" style="margin-top:24px" hidden aria-labelledby="rot-denuncias">
+      <h2 id="rot-denuncias">Denúncias eleitorais (aplicativo Pardal / TSE)</h2>
+      <p class="small muted">O TSE publica as denúncias de propaganda irregular sem identificar o candidato — apenas UF, município, cargo, tipo e o número do processo no PJe quando a denúncia virou processo. Use os links do PJe para ver quem é o denunciado.</p>
+      <div id="denuncias-conteudo"></div>
+    </section>
+
+    <section class="card no-print" style="margin-top:24px" aria-labelledby="rot-fontes">
+      <h2 id="rot-fontes">Onde pesquisar mais (fora do TSE)</h2>
+      <p class="small muted">Os dados do TSE mostram quem é o candidato; estes sites mostram o que ele fez. Abrem no navegador (precisam de internet).</p>
+      <div class="detalhes" id="fontes-externas"></div>
+    </section>
+  </section>
+</main>
+<div id="colinha-print" aria-hidden="true"></div>
+<script src="assets/app.js"></script>
+<script src="assets/meu-voto.js"></script>
+<script src="assets/perfil.js"></script>
+</body>
+</html>
