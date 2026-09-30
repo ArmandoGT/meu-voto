@@ -366,26 +366,27 @@
   }
   const nomeUFAtual = () => (universo.find((c) => c.uf === ctx.uf) || {}).ue || ctx.uf;
   const TAM_NUMERO = { 'Deputado Federal': 4, 'Deputado Estadual': 5, 'Deputado Distrital': 5, Senador: 3, Governador: 2, Presidente: 2 };
+  const iniciais = (nome) => titulo(nome || '').split(/\s+/).filter((p) => p.length > 2).slice(0, 2).map((p) => p[0]).join('').toUpperCase() || '?';
   function htmlColinha() {
     const m = Dados.manifest();
-    const nomeUF = nomeUFAtual();
     const digitos = (nr) => `<div class="digitos" aria-label="Número ${esc(nr.trim())}">${[...nr].map((d) => `<span>${d}</span>`).join('')}</div>`;
     const itens = escolhasOrdenadas().map((it, i) => {
       const c = it.c;
-      if (!c) {
-        const tam = TAM_NUMERO[it.cargo] || 2;
-        return `<div class="item nao-escolhido" data-cargo="${esc(it.cargo)}"><div class="ordem">${i + 1}</div><div class="rot">${esc(it.rotulo)}</div><div class="corpo">${digitos(' '.repeat(tam))}<div>Ainda não escolhido — defina na aba "${esc(it.cargo)}".</div></div></div>`;
-      }
+      const topo = `<div class="topo"><span class="ordem">${i + 1}</span><span class="rot">${esc(it.rotulo)}</span></div>`;
+      if (!c) return `<div class="item nao-escolhido" data-cargo="${esc(it.cargo)}">${topo}${digitos(' '.repeat(TAM_NUMERO[it.cargo] || 2))}<div class="info">Ainda não escolhido — defina na aba "${esc(it.cargo)}".</div></div>`;
       const chapa = chapaTexto(c);
-      return `<div class="item" data-sq="${esc(c.sq)}" data-cargo="${esc(it.cargo)}"><div class="ordem">${i + 1}</div><div class="rot">${esc(it.rotulo)}</div>
-        <div class="corpo">${digitos(c.nr)}<div class="quem">${fotoUrl(c) ? `<img src="${fotoUrl(c)}" alt="">` : '<div class="sem-foto"></div>'}<div><div class="nm">${esc(titulo(c.urna))}</div><div class="pt">${esc(c.partido)}${c.nomePartido ? ' · ' + esc(titulo(c.nomePartido)) : ''}</div>${chapa ? `<div class="chapa">${esc(chapa)}</div>` : ''}</div></div></div></div>`;
+      return `<div class="item" data-sq="${esc(c.sq)}" data-cargo="${esc(it.cargo)}">${topo}${digitos(c.nr)}
+        <div class="info"><div class="nm">${esc(titulo(c.urna))}</div><div class="pt">${esc(c.partido)}${c.nomePartido ? ' · ' + esc(titulo(c.nomePartido)) : ''}</div>${chapa ? `<div class="chapa">${esc(chapa)}</div>` : ''}</div>
+        ${fotoUrl(c) ? `<img class="foto" src="${fotoUrl(c)}" alt="">` : `<div class="foto sem-foto" aria-hidden="true">${esc(iniciais(c.urna))}</div>`}</div>`;
     }).join('');
-    const hoje = new Date().toLocaleDateString('pt-BR');
     return `<div class="colinha">
-      <div class="cab"><div><div class="t1">Colinha para a urna</div><div class="t2">Meu Voto 2026 · números na ordem em que a urna pede</div></div>
-        <div class="dir"><b>Eleições Gerais 2026</b>1º turno · 4 de outubro de 2026<br>${esc(titulo(nomeUF))}</div></div>
-      ${itens}
-      <div class="rodape"><div>Confira número, nome, partido e foto na tela da urna antes de confirmar cada voto. Levar anotação própria para a cabine é permitido.</div><div>Gerado em ${hoje} com dados oficiais do TSE${m.geradoEm ? ' (base de ' + esc(m.geradoEm.slice(0, 10)) + ')' : ''}.</div></div>
+      <div class="cab"><span class="selo">Meu Voto 2026</span><div class="t1">Minha colinha</div>
+        <div class="t2">Eleições 2026 · ${esc(titulo(nomeUFAtual()))}</div><div class="t3">1º turno · domingo, 4 de outubro · na ordem em que a urna pede</div></div>
+      <div class="itens">${itens}</div>
+      <div class="teclas" aria-hidden="true"><span class="branco">Branco</span><span class="corrige">Corrige</span><span class="confirma">Confirma</span></div>
+      <div class="rodape"><b>Confira número, nome e foto na urna antes de apertar CONFIRMA.</b>
+        <span>Levar anotação própria para a cabine é permitido; o celular não entra.</span>
+        <small>Gerado em ${new Date().toLocaleDateString('pt-BR')} com dados oficiais do TSE${m.geradoEm ? ' (base de ' + esc(m.geradoEm.slice(0, 10)) + ')' : ''}.</small></div>
     </div>`;
   }
   function textoColinha() {
@@ -405,7 +406,17 @@
 
   // ---------- colinha em PNG (1080×1920, visual de urna eletrônica; Canvas 2D puro, funciona offline) ----------
   const carregarImg = (src) => new Promise((ok) => { if (!src) return ok(null); const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
-  const iniciais = (nome) => titulo(nome || '').split(/\s+/).filter((p) => p.length > 2).slice(0, 2).map((p) => p[0]).join('').toUpperCase() || '?';
+  // em file:// o canvas com foto local não pode ser exportado; data/fotos/<sq>.js traz a mesma foto como data URI
+  const fotoExportavel = (c) => new Promise((ok) => {
+    const url = fotoUrl(c);
+    if (!url || url.startsWith('data:')) return ok(url);
+    const B = () => (window.FOTOS_B64 || {})[c.sq];
+    if (B()) return ok(B());
+    const s = document.createElement('script');
+    s.src = url.replace(/\.(jpe?g|png)$/i, '.js');
+    s.onload = () => { s.remove(); ok(B() || url); }; s.onerror = () => { s.remove(); ok(url); };
+    document.head.appendChild(s);
+  });
   function desenharColinha(cv, itens, fotos) {
     const W = 1080, H = 1920, M = 64, CW = W - 2 * M;
     cv.width = W; cv.height = H;
@@ -512,7 +523,7 @@
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
     const itens = escolhasOrdenadas();
     const fotos = new Map();
-    await Promise.all(itens.filter((it) => it.c && fotoUrl(it.c)).map(async (it) => { const im = await carregarImg(fotoUrl(it.c)); if (im) fotos.set(it.c.sq, im); }));
+    await Promise.all(itens.filter((it) => it.c && fotoUrl(it.c)).map(async (it) => { const im = await carregarImg(await fotoExportavel(it.c)); if (im) fotos.set(it.c.sq, im); }));
     const cv = document.createElement('canvas');
     desenharColinha(cv, itens, fotos);
     // em file:// as fotos locais "sujam" o canvas e o navegador bloqueia a exportação: refaz com as iniciais
