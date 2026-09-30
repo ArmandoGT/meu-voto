@@ -443,6 +443,8 @@ with sync_playwright() as p:
     larg, alt = struct.unpack(">II", png[16:24]) if png[:8] == b"\x89PNG\r\n\x1a\n" else (0, 0)
     ok((larg, alt) == (1080, 1920), "colinha em PNG 1080x1920 (%dx%d, %d KB, nome %s) -> %s" % (larg, alt, len(png) // 1024, dl.value.suggested_filename, SP / "colinha.png"))
     ok(dl.value.suggested_filename == "colinha-2026-RO.png", "nome do arquivo da colinha: %s" % dl.value.suggested_filename)
+    n_fotos = pg.evaluate("Object.keys(window.FOTOS_B64 || {}).length")
+    ok(n_fotos >= 5, "fotos entram no PNG mesmo em file:// (%d carregadas de data/fotos/<sq>.js)" % n_fotos)
     pg.evaluate("(() => { App.Store.ler().escolhas = {}; App.Store.salvar(); })()")
     pg.reload(); pg.wait_for_timeout(2500)
     pg.evaluate("App.Telas.mostrar('tela-cola')"); pg.wait_for_timeout(300)
