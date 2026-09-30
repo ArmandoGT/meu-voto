@@ -6,13 +6,14 @@ Uso:  python scripts/testes/teste_ui.py            (precisa de: python -m pip in
       saida (screenshots, PDF da colinha): scripts/testes/saida/
 
 Cobre: pesquisa, ficha, todas as abas e criterios, TODAS as fichas de RO e presidente, tela Emendas em todos
-os municipios/filtros, tela Votacoes (ALE-RO) com todos os deputados/tipos/anos, versao mobile, funcionamento sem os dados opcionais, impressao da colinha em PDF A4
+os municipios/filtros, tela Votacoes (ALE-RO) com todos os deputados/tipos/anos, versao mobile, funcionamento sem os dados opcionais, impressao da colinha em PDF A4 e em PNG
 e celulares reais emulados (Pixel 7, iPhone 13, Galaxy S9+: toque, fonte minima, alvos de toque).
 """
 import os
 import pathlib
 import re
 import shutil
+import struct
 import sys
 import tempfile
 
@@ -433,6 +434,21 @@ with sync_playwright() as p:
     ok(paginas == 1, "PDF da colinha cabe em 1 pagina A4 (%d pagina(s), %d KB) -> %s" % (paginas, len(pdf) // 1024, SP / "colinha.pdf"))
     pg.screenshot(path=str(SP / "colinha_impressao.png"), full_page=True)
     pg.emulate_media(media="screen")
+    # colinha em PNG (1080x1920): baixa pelo botao da tela Colinha
+    pg.evaluate("App.Telas.mostrar('tela-cola')"); pg.wait_for_timeout(300)
+    with pg.expect_download() as dl:
+        pg.click("#btn-png")
+    png = pathlib.Path(dl.value.path()).read_bytes()
+    (SP / "colinha.png").write_bytes(png)
+    larg, alt = struct.unpack(">II", png[16:24]) if png[:8] == b"\x89PNG\r\n\x1a\n" else (0, 0)
+    ok((larg, alt) == (1080, 1920), "colinha em PNG 1080x1920 (%dx%d, %d KB, nome %s) -> %s" % (larg, alt, len(png) // 1024, dl.value.suggested_filename, SP / "colinha.png"))
+    ok(dl.value.suggested_filename == "colinha-2026-RO.png", "nome do arquivo da colinha: %s" % dl.value.suggested_filename)
+    pg.evaluate("(() => { App.Store.ler().escolhas = {}; App.Store.salvar(); })()")
+    pg.reload(); pg.wait_for_timeout(2500)
+    pg.evaluate("App.Telas.mostrar('tela-cola')"); pg.wait_for_timeout(300)
+    with pg.expect_download() as dl:
+        pg.click("#btn-png")
+    ok(pathlib.Path(dl.value.path()).read_bytes()[:4] == b"\x89PNG", "colinha em PNG sem nenhuma escolha tambem gera a imagem")
     pg.evaluate("localStorage.clear()")
 
     print("7. Celulares reais emulados (tela, densidade de pixels, toque, user agent)")
