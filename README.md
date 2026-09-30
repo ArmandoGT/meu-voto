@@ -34,7 +34,7 @@ apenas Rondônia.
   votação por município na eleição anterior, bens declarados, certidões criminais e plano de governo (PDF),
   emendas parlamentares, financiamento de campanha 2026, atuação na Câmara e votações.
 - **Meu voto**: ranking por cargo com critérios e pesos ajustáveis e a explicação da nota de cada candidato.
-- **Colinha** no padrão do e-Título, para imprimir (A4) ou compartilhar pelo celular.
+- **Colinha** no padrão do e-Título, para imprimir (A4), salvar como imagem PNG (1080×1920, visual de urna, para o status ou o papel de parede) ou compartilhar pelo celular.
 - **Emendas**: quem mandou dinheiro para cada município de RO, destinado × pago, item a item.
 - **Votações**: ALE-RO, Câmara dos Deputados e Senado, voto a voto, com filtros.
 - **Versão para celular** em um único arquivo HTML, que funciona sem internet.
@@ -317,7 +317,7 @@ nenhuma falha e 1 alerta que vem da própria fonte (placar de um veto de 2017 no
 - Na tela **Votações**, marque "Como você votaria?" nas votações que importam para você: o critério
   "Vota como eu" do Meu voto compara com o voto registrado de cada candidato que era parlamentar.
 - Abra `meu-voto.html`, ajuste os critérios e vá marcando **favoritos**, **tags** e **escolhas**.
-- Imprima a **Colinha** (Meu voto → Colinha → Imprimir) antes de ir votar.
+- Imprima a **Colinha** (Meu voto → Colinha → Imprimir) antes de ir votar: o celular não entra na cabine. A imagem PNG serve para revisar os números na fila.
 
 ## Critérios — como funcionam e como adicionar
 
