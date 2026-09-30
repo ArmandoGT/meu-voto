@@ -404,7 +404,7 @@
     } catch (e) { if (!e || e.name !== 'AbortError') window.prompt('Copie o texto da colinha:', texto); }
   }
 
-  // ---------- colinha em PNG (1080×1920, visual de urna eletrônica; Canvas 2D puro, funciona offline) ----------
+  // ---------- colinha em PNG (desenhada em 1080×1920 e exportada em 2×: 2160×3840, nítida em telas de alta densidade; visual de urna eletrônica; Canvas 2D puro, funciona offline) ----------
   const carregarImg = (src) => new Promise((ok) => { if (!src) return ok(null); const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
   // em file:// o canvas com foto local não pode ser exportado; data/fotos/<sq>.js traz a mesma foto como data URI
   const fotoExportavel = (c) => new Promise((ok) => {
@@ -419,8 +419,10 @@
   });
   function desenharColinha(cv, itens, fotos) {
     const W = 1080, H = 1920, M = 64, CW = W - 2 * M;
-    cv.width = W; cv.height = H;
+    const E = 2; // escala de exportação: com 1×, visualizadores em telas 125–150% esticam a imagem e ela borra
+    cv.width = W * E; cv.height = H * E;
     const g = cv.getContext('2d');
+    g.scale(E, E); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     const css = getComputedStyle(document.documentElement);
     const SANS = css.getPropertyValue('--font').trim() || 'system-ui, sans-serif';
     const MONO = css.getPropertyValue('--mono').trim() || 'monospace';
