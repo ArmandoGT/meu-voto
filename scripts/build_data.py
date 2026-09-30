@@ -40,6 +40,7 @@ Campos de cada candidato gerado (usados pelas paginas):
 Somente stdlib.
 """
 import argparse
+import base64
 import csv
 import io
 import json
@@ -673,7 +674,24 @@ def extrair_arquivos(raw_dir, titulares, chapas_por_sq=None):
         for k in ("propostas", "certidoes"):
             if k in c:
                 c[k].sort()
+    gerar_fotos_js(fotos_dir)
     return n_foto, n_prop, n_cert
+
+
+def gerar_fotos_js(fotos_dir):
+    """Copia cada foto para <sq>.js (data URI em window.FOTOS_B64). Aberto via file://, o navegador bloqueia
+    exportar um canvas com imagens locais; carregada por <script>, a foto entra na colinha em PNG."""
+    n = 0
+    for f in sorted(os.listdir(fotos_dir)):
+        sq, ext = os.path.splitext(f)
+        if ext.lower() not in (".jpg", ".jpeg", ".png"):
+            continue
+        mime = "image/png" if ext.lower() == ".png" else "image/jpeg"
+        b64 = base64.b64encode(open(os.path.join(fotos_dir, f), "rb").read()).decode("ascii")
+        with open(os.path.join(fotos_dir, sq + ".js"), "w", encoding="ascii") as dst:
+            dst.write("(window.FOTOS_B64=window.FOTOS_B64||{})['%s']='data:%s;base64,%s';\n" % (sq, mime, b64))
+        n += 1
+    return n
 
 
 # ---------------------------------------------------------------- saida
