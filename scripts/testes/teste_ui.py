@@ -434,14 +434,14 @@ with sync_playwright() as p:
     ok(paginas == 1, "PDF da colinha cabe em 1 pagina A4 (%d pagina(s), %d KB) -> %s" % (paginas, len(pdf) // 1024, SP / "colinha.pdf"))
     pg.screenshot(path=str(SP / "colinha_impressao.png"), full_page=True)
     pg.emulate_media(media="screen")
-    # colinha em PNG (1080x1920): baixa pelo botao da tela Colinha
+    # colinha em PNG (2160x3840, 2x): baixa pelo botao da tela Colinha
     pg.evaluate("App.Telas.mostrar('tela-cola')"); pg.wait_for_timeout(300)
     with pg.expect_download() as dl:
         pg.click("#btn-png")
     png = pathlib.Path(dl.value.path()).read_bytes()
     (SP / "colinha.png").write_bytes(png)
     larg, alt = struct.unpack(">II", png[16:24]) if png[:8] == b"\x89PNG\r\n\x1a\n" else (0, 0)
-    ok((larg, alt) == (1080, 1920), "colinha em PNG 1080x1920 (%dx%d, %d KB, nome %s) -> %s" % (larg, alt, len(png) // 1024, dl.value.suggested_filename, SP / "colinha.png"))
+    ok((larg, alt) == (2160, 3840), "colinha em PNG 2160x3840 (%dx%d, %d KB, nome %s) -> %s" % (larg, alt, len(png) // 1024, dl.value.suggested_filename, SP / "colinha.png"))
     ok(dl.value.suggested_filename == "colinha-2026-RO.png", "nome do arquivo da colinha: %s" % dl.value.suggested_filename)
     n_fotos = pg.evaluate("Object.keys(window.FOTOS_B64 || {}).length")
     ok(n_fotos >= 5, "fotos entram no PNG mesmo em file:// (%d carregadas de data/fotos/<sq>.js)" % n_fotos)
