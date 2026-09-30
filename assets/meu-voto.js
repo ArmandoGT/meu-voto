@@ -364,14 +364,16 @@
     });
     return out;
   }
+  const nomeUFAtual = () => (universo.find((c) => c.uf === ctx.uf) || {}).ue || ctx.uf;
+  const TAM_NUMERO = { 'Deputado Federal': 4, 'Deputado Estadual': 5, 'Deputado Distrital': 5, Senador: 3, Governador: 2, Presidente: 2 };
   function htmlColinha() {
     const m = Dados.manifest();
-    const nomeUF = (universo.find((c) => c.uf === ctx.uf) || {}).ue || ctx.uf;
+    const nomeUF = nomeUFAtual();
     const digitos = (nr) => `<div class="digitos" aria-label="Número ${esc(nr.trim())}">${[...nr].map((d) => `<span>${d}</span>`).join('')}</div>`;
     const itens = escolhasOrdenadas().map((it, i) => {
       const c = it.c;
       if (!c) {
-        const tam = { 'Deputado Federal': 4, 'Deputado Estadual': 5, 'Deputado Distrital': 5, Senador: 3, Governador: 2, Presidente: 2 }[it.cargo] || 2;
+        const tam = TAM_NUMERO[it.cargo] || 2;
         return `<div class="item nao-escolhido" data-cargo="${esc(it.cargo)}"><div class="ordem">${i + 1}</div><div class="rot">${esc(it.rotulo)}</div><div class="corpo">${digitos(' '.repeat(tam))}<div>Ainda não escolhido — defina na aba "${esc(it.cargo)}".</div></div></div>`;
       }
       const chapa = chapaTexto(c);
@@ -399,6 +401,134 @@
       if (navigator.share) { await navigator.share({ title: 'Colinha — Eleições 2026', text: texto }); return; }
       await navigator.clipboard.writeText(texto); alert('Colinha copiada como texto. Cole onde quiser (WhatsApp, notas...).');
     } catch (e) { if (!e || e.name !== 'AbortError') window.prompt('Copie o texto da colinha:', texto); }
+  }
+
+  // ---------- colinha em PNG (1080×1920, visual de urna eletrônica; Canvas 2D puro, funciona offline) ----------
+  const carregarImg = (src) => new Promise((ok) => { if (!src) return ok(null); const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
+  const iniciais = (nome) => titulo(nome || '').split(/\s+/).filter((p) => p.length > 2).slice(0, 2).map((p) => p[0]).join('').toUpperCase() || '?';
+  function desenharColinha(cv, itens, fotos) {
+    const W = 1080, H = 1920, M = 64, CW = W - 2 * M;
+    cv.width = W; cv.height = H;
+    const g = cv.getContext('2d');
+    const css = getComputedStyle(document.documentElement);
+    const SANS = css.getPropertyValue('--font').trim() || 'system-ui, sans-serif';
+    const MONO = css.getPropertyValue('--mono').trim() || 'monospace';
+    const fonte = (peso, px, fam = SANS) => { g.font = `${peso} ${px}px ${fam}`; };
+    const esp = (px) => { if ('letterSpacing' in g) g.letterSpacing = px + 'px'; };
+    const rrect = (x, y, w, h, r) => { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); };
+    const caber = (t, max) => { if (g.measureText(t).width <= max) return t; while (t.length > 1 && g.measureText(t + '…').width > max) t = t.slice(0, -1); return t.trimEnd() + '…'; };
+    const texto = (t, x, y, max, cor) => { g.fillStyle = cor; g.fillText(max ? caber(t, max) : t, x, y); };
+    // encolhe a fonte até `min` antes de recorrer às reticências
+    const encolher = (t, max, peso, px, min) => { fonte(peso, px); while (px > min && g.measureText(t).width > max) fonte(peso, --px); };
+    const sombra = (blur, dy, a) => { g.shadowColor = `rgba(40,30,10,${a})`; g.shadowBlur = blur; g.shadowOffsetY = dy; };
+    const semSombra = () => { g.shadowColor = 'transparent'; g.shadowBlur = 0; g.shadowOffsetY = 0; };
+    g.textBaseline = 'alphabetic';
+
+    // fundo: carcaça creme da urna
+    const fundo = g.createLinearGradient(0, 0, 0, H);
+    fundo.addColorStop(0, '#F1ECE0'); fundo.addColorStop(1, '#E2DBCB');
+    g.fillStyle = fundo; g.fillRect(0, 0, W, H);
+
+    // cabeçalho: "tela" da urna
+    const HY = M, HH = 316;
+    sombra(30, 10, .25); rrect(M, HY, CW, HH, 32); g.fillStyle = '#1C2127'; g.fill(); semSombra();
+    const tela = g.createLinearGradient(0, HY, 0, HY + HH);
+    tela.addColorStop(0, 'rgba(255,255,255,.07)'); tela.addColorStop(1, 'rgba(255,255,255,0)');
+    rrect(M + 14, HY + 14, CW - 28, HH - 28, 22); g.fillStyle = tela; g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.08)'; g.lineWidth = 2; g.stroke();
+    fonte(800, 22); esp(3);
+    const selo = 'MEU VOTO 2026', sw = g.measureText(selo).width + 36;
+    rrect(M + 48, HY + 48, sw, 42, 21); g.fillStyle = '#1E9E4A'; g.fill();
+    texto(selo, M + 66, HY + 77, 0, '#fff');
+    fonte(800, 88); esp(4); texto('MINHA COLINHA', M + 46, HY + 186, CW - 92, '#fff');
+    esp(0); fonte(600, 36); texto(`Eleições 2026 · ${titulo(nomeUFAtual())}`, M + 48, HY + 240, CW - 96, '#D5DCE4');
+    fonte(400, 28); texto('1º turno · domingo, 4 de outubro · na ordem em que a urna pede', M + 48, HY + 282, CW - 96, '#9AA6B2');
+
+    // rodapé: teclas BRANCO / CORRIGE / CONFIRMA + avisos
+    const FY = H - M - 290;
+    const teclas = [['BRANCO', 256, '#F8F6F0', '#1C2127'], ['CORRIGE', 256, '#E8792B', '#fff'], ['CONFIRMA', CW - 512 - 40, '#1E9E4A', '#fff']];
+    let tx = M;
+    teclas.forEach(([rot, w, bg, cor]) => {
+      sombra(0, 8, .35); rrect(tx, FY, w, 108, 20); g.fillStyle = bg; g.fill(); semSombra();
+      if (bg === '#F8F6F0') { g.strokeStyle = '#CFC6B3'; g.lineWidth = 2; g.stroke(); }
+      fonte(800, rot === 'CONFIRMA' ? 40 : 32); esp(2); g.textAlign = 'center';
+      texto(rot, tx + w / 2, FY + 68, 0, cor); g.textAlign = 'left'; esp(0);
+      tx += w + 20;
+    });
+    g.textAlign = 'center';
+    fonte(700, 28); texto('Confira número, nome e foto na urna antes de apertar CONFIRMA.', W / 2, FY + 170, CW, '#2A2F36');
+    fonte(400, 26); texto('Celular não entra na cabine: imprima ou anote seus números.', W / 2, FY + 212, CW, '#4A515B');
+    const m = Dados.manifest();
+    fonte(400, 21); texto(`Gerado em ${new Date().toLocaleDateString('pt-BR')} com dados oficiais do TSE${m.geradoEm ? ' (base de ' + m.geradoEm.slice(0, 10) + ')' : ''} · Meu Voto 2026`, W / 2, FY + 262, CW, '#7A7466');
+    g.textAlign = 'left';
+
+    // votos: um cartão por voto, altura dividida para caber todos
+    const IY = HY + HH + 32, GAP = 18, IH = Math.floor((FY - 36 - IY - GAP * (itens.length - 1)) / itens.length);
+    const KW = 70, KH = Math.min(92, IH - 76), KG = 10;
+    itens.forEach((it, i) => {
+      const y = IY + i * (IH + GAP), c = it.c;
+      sombra(18, 6, .12); rrect(M, y, CW, IH, 24); g.fillStyle = '#fff'; g.fill(); semSombra();
+      // ordem + cargo
+      g.beginPath(); g.arc(M + 46, y + 38, 20, 0, Math.PI * 2); g.fillStyle = c ? '#1C2127' : '#B9B09C'; g.fill();
+      fonte(800, 22); g.textAlign = 'center'; texto(String(i + 1), M + 46, y + 46, 0, '#fff'); g.textAlign = 'left';
+      fonte(800, 22); esp(2.5); texto(it.rotulo.toUpperCase(), M + 80, y + 46, CW - 110, '#6B6557'); esp(0);
+      // teclas com os dígitos
+      const nr = c ? String(c.nr).trim() : ' '.repeat(TAM_NUMERO[it.cargo] || 2);
+      const ky = y + 62; let kx = M + 80;
+      [...nr].forEach((d) => {
+        if (c) {
+          rrect(kx, ky + 5, KW, KH, 14); g.fillStyle = '#000'; g.fill();
+          rrect(kx, ky, KW, KH, 14); g.fillStyle = '#23282F'; g.fill();
+          fonte(800, Math.round(KH * .62), MONO); g.textAlign = 'center';
+          texto(d, kx + KW / 2, ky + KH * .72, 0, '#fff'); g.textAlign = 'left';
+        } else {
+          rrect(kx, ky, KW, KH, 14); g.setLineDash([8, 7]); g.strokeStyle = '#C7BFAE'; g.lineWidth = 3; g.stroke(); g.setLineDash([]);
+        }
+        kx += KW + KG;
+      });
+      // quem: foto (ou iniciais) + nome, partido, chapa
+      const FW = Math.round((IH - 40) * .75), FH = IH - 40, fx = M + CW - 22 - FW, fy = y + 20;
+      const x0 = kx + 18, larg = fx - 22 - x0;
+      if (!c) { fonte(600, 28); texto('Ainda não escolhido', x0, y + 118, larg, '#9A927F'); return; }
+      g.save(); rrect(fx, fy, FW, FH, 14); g.clip();
+      const foto = fotos && fotos.get(c.sq);
+      if (foto) {
+        const esc2 = Math.max(FW / foto.width, FH / foto.height), iw = foto.width * esc2, ih = foto.height * esc2;
+        g.drawImage(foto, fx + (FW - iw) / 2, fy + (FH - ih) / 4, iw, ih);
+      } else {
+        g.fillStyle = '#E6E0D2'; g.fillRect(fx, fy, FW, FH);
+        fonte(800, Math.round(FW * .36)); g.textAlign = 'center'; texto(iniciais(c.urna), fx + FW / 2, fy + FH / 2 + FW * .13, 0, '#8C846F'); g.textAlign = 'left';
+      }
+      g.restore();
+      const chapa = chapaTexto(c);
+      const ny = chapa ? y + 96 : y + 108;
+      encolher(titulo(c.urna), larg, 800, 34, 26); texto(titulo(c.urna), x0, ny, larg, '#15191E');
+      encolher(c.partido, larg, 600, 24, 20); texto(c.partido + (c.nomePartido ? ' · ' + titulo(c.nomePartido) : ''), x0, ny + 34, larg, '#4A515B');
+      if (chapa) { fonte(400, 20); texto(chapa, x0, ny + 62, larg, '#7A7466'); }
+    });
+  }
+  const paraBlob = (cv) => new Promise((ok, erro) => { try { cv.toBlob((b) => b ? ok(b) : erro(new Error('falha ao gerar a imagem')), 'image/png'); } catch (e) { erro(e); } });
+  async function pngColinha() {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const itens = escolhasOrdenadas();
+    const fotos = new Map();
+    await Promise.all(itens.filter((it) => it.c && fotoUrl(it.c)).map(async (it) => { const im = await carregarImg(fotoUrl(it.c)); if (im) fotos.set(it.c.sq, im); }));
+    const cv = document.createElement('canvas');
+    desenharColinha(cv, itens, fotos);
+    // em file:// as fotos locais "sujam" o canvas e o navegador bloqueia a exportação: refaz com as iniciais
+    try { return await paraBlob(cv); } catch (e) { desenharColinha(cv, itens, null); return paraBlob(cv); }
+  }
+  async function salvarColinhaPNG() {
+    const btn = $('btn-png'); const rot = btn.innerHTML;
+    btn.disabled = true; btn.textContent = 'Gerando imagem…';
+    try {
+      const url = URL.createObjectURL(await pngColinha());
+      const a = document.createElement('a');
+      if ('download' in a) { a.href = url; a.download = `colinha-2026-${ctx.uf}.png`; document.body.appendChild(a); a.click(); a.remove(); }
+      else window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (e) { alert('Não foi possível gerar a imagem: ' + e.message); }
+    finally { btn.disabled = false; btn.innerHTML = rot; }
   }
 
   // ---------- denúncias (Pardal) ----------
@@ -456,6 +586,7 @@
   $('btn-limpar').onclick = () => { if (confirm('Apagar favoritos, notas, tags, critérios e escolhas deste navegador?')) { Store.limpar(); location.reload(); } };
   $('btn-imprimir').onclick = () => { renderColinhaPrint(); window.print(); };
   $('btn-compartilhar').onclick = compartilharColinha;
+  $('btn-png').onclick = salvarColinhaPNG;
   window.addEventListener('beforeprint', renderColinhaPrint);
   document.addEventListener('modal:fechou', () => { renderAbas(); renderRank(); renderCola(); });
 
