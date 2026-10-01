@@ -163,6 +163,8 @@ def main():
     voto = ler("assets/meu-voto.js")
     emendas = ler("assets/emendas.js")
     votacoes = ler("assets/votacoes.js")
+    coligacoes = ler("assets/coligacoes.js")
+    tela_coligacoes = miolo(ler("coligacoes.html"), "tela-coligacoes").replace('class="tela ativa"', 'class="tela"')
     tela_votacoes = miolo(ler("votacoes.html"), "tela-votacoes").replace('class="tela ativa"', 'class="tela"')
     tela_emendas = miolo(ler("emendas.html"), "tela-emendas").replace('class="tela ativa"', 'class="tela"')
     pagina_voto = ler("meu-voto.html")
@@ -199,6 +201,7 @@ def main():
 {tela_cola}
 {tela_emendas}
 {tela_votacoes}
+{tela_coligacoes}
 {tela_perfil}
 {tela_mais}
 </main>
@@ -217,6 +220,9 @@ def main():
 </script>
 <script>
 {votacoes}
+</script>
+<script>
+{coligacoes}
 </script>
 <script>
 {perfil_js}
