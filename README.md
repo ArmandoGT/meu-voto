@@ -37,6 +37,10 @@ apenas Rondônia.
 - **Colinha** no padrão do e-Título, para imprimir (A4), salvar como imagem PNG (2160×3840, visual de urna, para o status ou o papel de parede) ou compartilhar pelo celular.
 - **Emendas**: quem mandou dinheiro para cada município de RO, destinado × pago, item a item.
 - **Votações**: ALE-RO, Câmara dos Deputados e Senado, voto a voto, com filtros.
+- **Coligações**: para onde vai o voto em cada candidato. Para deputado, o voto é somado ao partido ou à
+  federação, e a tela lista os outros candidatos que esse voto pode ajudar a eleger. Para presidente, governador
+  e senador, mostra a coligação e explica que o voto não se transfere. Inclui as regras (quociente eleitoral,
+  sobras, federações) com links para a lei, o STF e o TSE.
 - **Versão para celular** em um único arquivo HTML, que funciona sem internet.
 - **Testes automáticos** dos dados e da interface, incluindo auditoria cruzada com as APIs oficiais.
 
@@ -104,9 +108,10 @@ DivulgaCandContas.
 |---|---|
 | `mobile/meu-voto-mobile.html` | **Versão celular, offline**: um único arquivo com tudo que o desktop tem (pesquisa, ficha completa, critérios, ranking, colinha para imprimir, salvar em PNG ou compartilhar, denúncias, fontes, dados da Câmara, emendas). RO + presidente com fotos: cerca de 14 MB. `mobile/meu-voto-mobile-brasil.html`: idem com as 27 UFs (cerca de 74 MB, carregadas sob demanda). Gerados por `scripts/build_mobile.py`. |
 | `index.html` | **Pesquisa geral**: todos os 20.063 candidatos do Brasil, com busca por nome/número e filtros (UF, cargo, partido, situação, reeleição, gênero, município/UF de nascimento, **município onde já disputou eleição**, já foi eleito, motivo de indeferimento, idade, escolaridade, ocupação, meus marcadores). Clique no candidato para ver a ficha completa. |
-| `meu-voto.html` | Três telas, as mesmas do celular (menu no topo: **Meu voto · Colinha · Mais**, mais Pesquisar e Emendas). **Meu voto**: abas por cargo (com o nº de vagas real), painel de critérios com pesos, ranking com score e explicação, botão "Escolher". **Colinha**: cartão no padrão da "colinha" do e-Título — ordem da urna, dígitos em caixas, foto, nome, partido, vice/suplentes; toque em um item para abrir a ficha; botões **Imprimir / salvar PDF** (A4, sem cabeçalho do navegador) e **Compartilhar** (menu de compartilhamento do celular ou área de transferência). **Mais**: denúncias Pardal e fontes externas. Em janelas estreitas o menu vai para a barra inferior, como no celular. |
+| `meu-voto.html` | Quatro telas, as mesmas do celular (**Meu voto · Colinha · Perfil · Mais**; o menu do topo leva também às outras páginas). **Meu voto**: abas por cargo (com o nº de vagas real), painel de critérios com pesos, ranking com score e explicação, botão "Escolher". **Colinha**: cartão no padrão da "colinha" do e-Título — ordem da urna, dígitos em caixas, foto, nome, partido, vice/suplentes; toque em um item para abrir a ficha; botões **Imprimir / salvar PDF** (A4, sem cabeçalho do navegador) e **Compartilhar** (menu de compartilhamento do celular ou área de transferência). **Mais**: denúncias Pardal e fontes externas. Em janelas estreitas o menu vai para a barra inferior, como no celular. |
 | `emendas.html` | **Emendas parlamentares**: escolha um município de RO (abre no município do seu Perfil) e veja **quem mandou dinheiro de emendas para lá** — ranking por parlamentar (destinado × pago/recebido), destaque para quem é candidato em 2026, e a lista item a item com ano, área, objeto e quem recebeu. Filtros: federal/estadual, ano, só candidatos, com/sem emendas coletivas (bancada, comissão, relator). Gerado por `scripts/fetch_emendas.py`. |
 | `votacoes.html` | **Votações**: como votaram os parlamentares de RO. Quatro modos: ALE-RO votações nominais (voto de cada deputado estadual), ALE-RO leis sem voto individual (votação simbólica, desde 2023, com autoria e declarações oficiais), Câmara dos Deputados e Senado Federal (candidatos de RO que são ou foram deputados federais/senadores). Filtros por parlamentar, tipo, ano e texto. Só mostra o que as fontes oficiais registram, sem classificar votos como bons ou ruins. Gerado por `scripts/fetch_alero.py` e `scripts/fetch_votacoes_federais.py`. |
+| `coligacoes.html` | **Coligações**: para onde vai o voto. **Por candidato**: escolha um candidato (ou use "Para onde vai o voto" na ficha). Para deputado, mostra o partido ou a federação e os outros candidatos do mesmo grupo, que somam votos entre si. Para presidente, governador e senador, mostra a coligação, a chapa e os candidatos apoiados pelos mesmos partidos, e avisa que o voto não se transfere. **Por grupo**: partidos isolados, federações e coligações de cada cargo, com os candidatos. Explicação das regras com fontes oficiais (Constituição, leis, STF, TSE). Usa os campos de agremiação do `consulta_cand` do TSE. |
 
 **Ficha do candidato** (modal): foto oficial, **atuação na Câmara dos Deputados** (para quem já é deputado: proposições, frentes, comissões e links "Como votou", "Projetos", "Gastos" — via `scripts/fetch_camara.py`), situação do julgamento, chapa (vice/suplentes com foto e certidões), dados pessoais,
 **votação por município na eleição anterior** (quando o arquivo de votação está em `raw/`),
@@ -273,7 +278,7 @@ python scripts/build_mobile.py --todas       # meu-voto-mobile-brasil.html: toda
 ```
 
 Um arquivo só, sem dependências: funciona em qualquer navegador de celular sem internet. Navegação inferior
-com cinco telas (Pesquisar · Meu voto · Colinha · Emendas · Mais). Os PDFs de certidões e planos (300 MB) não cabem
+com sete telas (Pesquisar · Meu voto · Colinha · Emendas · Votações · Coligações · Perfil); Mais fica no Perfil. Os PDFs de certidões e planos (300 MB) não cabem
 no arquivo: a ficha mostra um link para os mesmos documentos no DivulgaCandContas (abre com internet).
 Favoritos/escolhas ficam salvos no navegador do celular; o Exportar/Importar usa o mesmo JSON do
 computador. Rode de novo depois de cada `build_data.py` / `fetch_camara.py` / `fetch_emendas.py` / `fetch_alero.py` / `fetch_votacoes_federais.py` para atualizar.
@@ -295,10 +300,12 @@ python scripts\testes\rodar_testes.py --cruzado  # tudo + auditoria cruzada com 
 
 - `teste_dados.py` — confere os arquivos gerados contra os brutos: candidatos x TSE, fotos/PDFs existentes,
   limite de gastos, receitas e despesas de cada candidato de RO centavo a centavo, totais de emendas x CGU,
-  casamento autor → candidato (lista de homônimos/parentes que nunca podem casar), downloads íntegros e
+  casamento autor → candidato (lista de homônimos/parentes que nunca podem casar), federações e coligações x TSE
+  (nenhum deputado em coligação, só as 5 federações registradas), downloads íntegros e
   **avisos de dados velhos** (base, emendas e prestação de contas).
 - `teste_ui.py` — abre o sistema no Edge (sem janela): pesquisa, todas as abas e critérios, **todas as fichas
-  de RO e presidente**, tela Emendas em todos os municípios e filtros, versão celular, funcionamento sem os
+  de RO e presidente**, tela Emendas em todos os municípios e filtros, tela Coligações (deputado federado,
+  governador, senador e grupos de cada cargo), versão celular, funcionamento sem os
   dados opcionais, **impressão da colinha em PDF A4** (salvo em `scripts/testes/saida/colinha.pdf`) e
   **celulares emulados** (Pixel 7, iPhone 13, Galaxy S9+, iPhone SE: toque, fonte mínima, alvos de toque,
   sem rolagem lateral). Screenshots em `scripts/testes/saida/`.
@@ -413,14 +420,17 @@ Todas públicas e oficiais. O projeto é independente e não tem vínculo com ne
 - **Assembleia Legislativa de Rondônia** — SAPL: <https://sapl.al.ro.leg.br/>
 - **Portal da Transparência (CGU)** — emendas parlamentares federais: <https://portaldatransparencia.gov.br/emendas>
 - **Portal da Transparência do Governo de Rondônia** — emendas estaduais: <https://transparencia.ro.gov.br/emenda>
+- **Regras de coligação e federação** (tela Coligações): Emenda Constitucional 97/2017, Lei 9.504/1997, Lei
+  14.208/2021 e Código Eleitoral em <https://www.planalto.gov.br/>; decisões do STF (ADIs 7021, 7228, 7263 e 7325);
+  lista de federações do TSE: <https://www.tse.jus.br/partidos/federacoes-registradas-no-tse>
 
 ## Estrutura
 
 ```
-index.html · meu-voto.html (Meu voto, Colinha, Perfil, Mais) · emendas.html · votacoes.html
+index.html · meu-voto.html (Meu voto, Colinha, Perfil, Mais) · emendas.html · votacoes.html · coligacoes.html
 README.md · LICENSE (MIT) · .gitignore · PROXIMOS-PASSOS.md (estado do projeto e pendências)
 docs/img/  capturas de tela usadas no README
-assets/   styles.css · app.js (dados, storage, modal) · busca.js · meu-voto.js (critérios) · emendas.js · votacoes.js · perfil.js
+assets/   styles.css · app.js (dados, storage, modal) · busca.js · meu-voto.js (critérios) · emendas.js · votacoes.js · coligacoes.js · perfil.js
 data/     manifest.js · cand_BR.js · cand_RO.js · ... · camara.js · emendas.js · emendas_alias.json · alero.js · alero_declaracoes.json
           alero_alias.json (opcional) · votacoes_federais.js · denuncias.js · municipios.js
           fotos/ · propostas/ · certidoes/  (gerados)
