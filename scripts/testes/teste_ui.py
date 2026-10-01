@@ -6,7 +6,7 @@ Uso:  python scripts/testes/teste_ui.py            (precisa de: python -m pip in
       saida (screenshots, PDF da colinha): scripts/testes/saida/
 
 Cobre: pesquisa, ficha, todas as abas e criterios, TODAS as fichas de RO e presidente, tela Emendas em todos
-os municipios/filtros, tela Votacoes (ALE-RO) com todos os deputados/tipos/anos, versao mobile, funcionamento sem os dados opcionais, impressao da colinha em PDF A4 e em PNG
+os municipios/filtros, tela Votacoes (ALE-RO) com todos os deputados/tipos/anos, tela Coligacoes (por candidato e por grupo), versao mobile, funcionamento sem os dados opcionais, impressao da colinha em PDF A4 e em PNG
 e celulares reais emulados (Pixel 7, iPhone 13, Galaxy S9+: toque, fonte minima, alvos de toque).
 """
 import os
@@ -344,12 +344,60 @@ with sync_playwright() as p:
     pg.goto((ROOT / "meu-voto.html").as_uri() + "#perfil"); pg.wait_for_timeout(2500)
     ok(pg.evaluate(OVERFLOW) == "", "perfil 390px: sem rolagem horizontal [%s]" % pg.evaluate(OVERFLOW))
 
+    print("3d. Coligacoes: por candidato (deputado federado, governador, senador) e por grupo")
+    U = (ROOT / "coligacoes.html").as_uri()
+    pg = nova(b)
+    pg.goto(U); pg.wait_for_timeout(2500)
+    ok(pg.evaluate("document.querySelectorAll('.cl-res').length") > 0 and pg.evaluate(RUIM) == "", "coligacoes: lista de candidatos para escolher, sem NaN")
+    ok(pg.evaluate("document.querySelectorAll('#cl-fontes a[href^=\"https://\"]').length") >= 10 and "30/09/2026" in pg.inner_text("#cl-rodape"),
+       "coligacoes: fontes oficiais com link e data da conferencia")
+    ok(pg.evaluate("document.querySelectorAll('#cl-federacoes tbody tr').length") == 5, "coligacoes: tabela com as 5 federacoes registradas no TSE")
+    pg.fill("#cl-texto", "4412"); pg.wait_for_timeout(300)
+    ok(pg.evaluate("[...document.querySelectorAll('.cl-res')].every(b => b.querySelector('.numero').textContent.startsWith('4412'))"), "coligacoes: busca por numero")
+    dep = pg.evaluate("App.Dados.cache.RO.find(c => c.cargo === 'Deputado Federal' && c.nrFederacao === '101' && c.urnaOk !== false)")
+    pg.goto("about:blank"); pg.goto(U + "#coligacoes-RO-" + dep["sq"]); pg.wait_for_timeout(2500)
+    txt = pg.inner_text("#cl-conteudo")
+    colegas = pg.evaluate("""(sq) => { const c = App.Dados.cache.RO.find(x => x.sq === sq);
+      return App.Dados.cache.RO.filter(x => x.sq !== sq && x.cargo === c.cargo && x.nrFederacao === c.nrFederacao && x.urnaOk !== false).map(x => x.sq).sort(); }""", dep["sq"])
+    vistos = pg.evaluate("[...document.querySelectorAll('#cl-conteudo .grade:not(.cl-escolhido) .cand')].map(e => e.dataset.sq).sort()")
+    ok("Brasil da Esperança" in txt and "não vai para nenhum outro partido" in txt and vistos == colegas and len(vistos) > 0,
+       "coligacoes: deputado da FE Brasil mostra os %d colegas da federacao (PT, PCdoB, PV) e nenhum outro" % len(colegas))
+    pg.click("#cl-conteudo .grade:not(.cl-escolhido) .cand >> nth=0"); pg.wait_for_timeout(300)
+    ok(pg.query_selector(".modal") is not None, "coligacoes: cartao do colega abre a ficha")
+    pg.click(".modal .ver-aliados"); pg.wait_for_timeout(400)
+    ok(pg.query_selector(".modal") is None and pg.evaluate("document.querySelector('.cl-destino h2').textContent").startswith("Para onde vai o voto"),
+       "coligacoes: 'Para onde vai o voto' na ficha troca de candidato na mesma pagina")
+    gov = pg.evaluate("App.Dados.cache.RO.find(c => c.cargo === 'Governador' && c.tipoAgremiacao === 'COLIGAÇÃO').sq")
+    pg.goto("about:blank"); pg.goto(U + "#coligacoes-RO-" + gov); pg.wait_for_timeout(2500)
+    txt = pg.inner_text("#cl-conteudo")
+    ok("não se transfere" in txt and "coligação" in txt and "maioria absoluta" in txt, "coligacoes: governador mostra a coligacao e que o voto nao se transfere")
+    sen = pg.evaluate("App.Dados.cache.RO.find(c => c.cargo === 'Senador' && c.tipoAgremiacao === 'COLIGAÇÃO').sq")
+    pg.goto("about:blank"); pg.goto(U + "#coligacoes-RO-" + sen); pg.wait_for_timeout(2500)
+    ok("dois mais votados" in pg.inner_text("#cl-conteudo"), "coligacoes: senador explica as 2 vagas sem segundo turno")
+    pg.click('.vt-modos button[data-modo="grupo"]'); pg.wait_for_timeout(400)
+    for cargo in ("Deputado Federal", "Deputado Estadual", "Governador", "Senador"):
+        pg.select_option("#cl-cargo", cargo); pg.wait_for_timeout(300)
+        r = pg.evaluate("""(cargo) => { const n = App.Dados.cache.RO.filter(c => c.cargo === cargo && c.urnaOk !== false).length;
+          const soma = [...document.querySelectorAll('.cl-grupo')].reduce((t, d) => t + parseInt(d.querySelector('summary .small').textContent.match(/([0-9]+) candidato/)[1]), 0);
+          return { n, soma, fed: [...document.querySelectorAll('.cl-grupo summary')].filter(s => s.textContent.includes('Federação')).length }; }""", cargo)
+        ok(r["n"] == r["soma"] and pg.evaluate(RUIM) == "", "coligacoes por grupo, %s: grupos somam os %d candidatos" % (cargo, r["n"]))
+        if cargo.startswith("Deputado"):
+            ok(r["fed"] == 4 and not pg.evaluate("[...document.querySelectorAll('.cl-grupo summary .tag')].some(t => t.textContent === 'Coligação')"),
+               "coligacoes por grupo, %s: 4 federacoes de RO e nenhuma coligacao" % cargo)
+    pg.click(".cl-grupo summary >> nth=0"); pg.wait_for_timeout(300)
+    ok(pg.evaluate("document.querySelectorAll('.cl-grupo[open] .cand').length") > 0, "coligacoes: abrir um grupo mostra os candidatos")
+    ok(not pg._erros, "coligacoes: sem erros de console %s" % pg._erros[:3])
+    for w in (390, 320):
+        pg = nova(b, w, 844)
+        pg.goto(U + "#coligacoes-RO-" + dep["sq"]); pg.wait_for_timeout(2500)
+        ok(pg.evaluate(OVERFLOW) == "", "coligacoes %dpx: sem rolagem horizontal [%s]" % (w, pg.evaluate(OVERFLOW)))
+
     print("4. Versao mobile (arquivo unico)")
     pg = nova(b, 390, 844)
     pg.goto((ROOT / "mobile" / "meu-voto-mobile.html").as_uri()); pg.wait_for_timeout(3500)
     ok(pg.query_selector('.bottom-nav button[data-tela="tela-mais"]') is None and pg.query_selector('.bottom-nav button[data-tela="tela-perfil"]') is not None,
        "mobile: barra inferior tem Perfil; Mais fica no Perfil (e no topo, no computador)")
-    for tela in ("tela-busca", "tela-voto", "tela-cola", "tela-emendas", "tela-votacoes", "tela-perfil"):
+    for tela in ("tela-busca", "tela-voto", "tela-cola", "tela-emendas", "tela-votacoes", "tela-coligacoes", "tela-perfil"):
         pg.click('.bottom-nav button[data-tela="%s"]' % tela); pg.wait_for_timeout(400)
         ativa = pg.eval_on_selector(".tela.ativa", "e => e.id")
         ok(ativa == tela and pg.evaluate(RUIM) == "", "mobile: tela %s abre, sem NaN" % tela)
@@ -374,19 +422,24 @@ with sync_playwright() as p:
     pg.click('.modal a[data-tela="tela-votacoes"]'); pg.wait_for_timeout(400)
     ok(pg.eval_on_selector(".tela.ativa", "e => e.id") == "tela-votacoes" and pg.eval_on_selector("#vt-dep", "e => e.value") == pid,
        "mobile: link da ficha abre Votacoes filtrada no deputado")
+    # ficha -> "Para onde vai o voto" no mesmo arquivo
+    pg.evaluate("App.Modal.abrir(App.Dados.cache.RO.find(c => c.cargo === 'Deputado Estadual'))")
+    pg.click(".modal .ver-aliados"); pg.wait_for_timeout(400)
+    ok(pg.eval_on_selector(".tela.ativa", "e => e.id") == "tela-coligacoes" and pg.query_selector("#tela-coligacoes .cl-destino") is not None,
+       "mobile: link da ficha abre Coligacoes no candidato")
     ok(not pg._erros, "mobile: sem erros de console %s" % pg._erros[:3])
     pg.screenshot(path=str(SP / "t_mobile.png"))
 
     print("5. Sem arquivos opcionais (emendas.js, camara.js, denuncias.js, alero.js)")
     tmp = pathlib.Path(tempfile.mkdtemp())
-    for f in ("index.html", "meu-voto.html", "emendas.html", "votacoes.html"):
+    for f in ("index.html", "meu-voto.html", "emendas.html", "votacoes.html", "coligacoes.html"):
         shutil.copy(ROOT / f, tmp / f)
     shutil.copytree(ROOT / "assets", tmp / "assets")
     (tmp / "data").mkdir()
     for f in os.listdir(ROOT / "data"):
         if f.endswith(".js") and f not in ("emendas.js", "camara.js", "denuncias.js", "alero.js", "votacoes_federais.js"):
             shutil.copy(ROOT / "data" / f, tmp / "data" / f)
-    for f in ("index.html", "meu-voto.html", "emendas.html", "votacoes.html"):
+    for f in ("index.html", "meu-voto.html", "emendas.html", "votacoes.html", "coligacoes.html"):
         pg = nova(b)
         pg._erros = []
         pg.on("pageerror", lambda e, pg=pg: pg._erros.append(str(e)))
@@ -472,7 +525,7 @@ with sync_playwright() as p:
         ok(modal and modal["cobre"] and modal["fechar"] and modal["rolou"], "%s: ficha em tela cheia, rola ate o fim, botao fechar visivel %s" % (nome, modal))
         pg.tap(".modal .fechar"); pg.wait_for_timeout(300)
         ok(pg.query_selector(".modal") is None, "%s: fechar a ficha por toque" % nome)
-        for tela in ("tela-busca", "tela-voto", "tela-cola", "tela-emendas", "tela-votacoes", "tela-perfil", "tela-mais"):
+        for tela in ("tela-busca", "tela-voto", "tela-cola", "tela-emendas", "tela-votacoes", "tela-coligacoes", "tela-perfil", "tela-mais"):
             pg.evaluate("App.Telas.mostrar('%s')" % tela); pg.wait_for_timeout(300)
             r = pg.evaluate("""(() => {
               const vis = [...document.querySelectorAll('.tela.ativa *, .bottom-nav *')].filter(e => e.offsetParent !== null && e.childNodes.length && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()));

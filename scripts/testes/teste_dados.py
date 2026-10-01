@@ -64,8 +64,26 @@ ok(dup == 0, "sem SQ duplicado (%d candidatos)" % len(cands))
 ok(not man.get("amostra"), "manifest nao e amostra")
 z = zipfile.ZipFile(os.path.join(RAW, "consulta_cand_2026.zip"))
 m = [n for n in z.namelist() if n.endswith("_BRASIL.csv")][0]
-sq_raw = {r["SQ_CANDIDATO"] for r in csv.DictReader(io.TextIOWrapper(z.open(m), encoding="latin-1"), delimiter=";")}
+raw_cand = {r["SQ_CANDIDATO"]: r for r in csv.DictReader(io.TextIOWrapper(z.open(m), encoding="latin-1"), delimiter=";")}
+sq_raw = set(raw_cand)
 ok(set(cands) <= sq_raw, "todo candidato gerado existe no consulta_cand bruto")
+
+print("1b. Partido, federacao e coligacao (tela Coligacoes)")
+nul = lambda x: "" if (x or "").strip() in ("#NULO", "#NE", "-1", "-3") else (x or "").strip()
+dif = [sq for sq, c in cands.items() if sq in raw_cand and (
+    c.get("nrFederacao", "") != nul(raw_cand[sq]["NR_FEDERACAO"]) or c.get("nomeFederacao", "") != nul(raw_cand[sq]["NM_FEDERACAO"])
+    or c.get("sqColigacao", "") != nul(raw_cand[sq]["SQ_COLIGACAO"]) or c.get("tipoAgremiacao", "") != nul(raw_cand[sq]["TP_AGREMIACAO"]))]
+ok(not dif, "nrFederacao/nomeFederacao/sqColigacao/tipoAgremiacao = consulta_cand bruto (%d diferentes)" % len(dif))
+deps = [c for c in cands.values() if c["cargo"].startswith("Deputado")]
+ok(deps and not [c for c in deps if c["tipoAgremiacao"] == "COLIGAÇÃO"], "nenhum deputado em coligacao (EC 97/2017) - %d deputados" % len(deps))
+feds = collections.Counter(c["nrFederacao"] for c in cands.values() if c["tipoAgremiacao"] == "FEDERAÇÃO")
+ok(set(feds) <= {"100", "101", "102", "103", "104"}, "federacoes nos dados = as 5 registradas no TSE (%s)" % dict(sorted(feds.items())))
+ok(all(c["nrFederacao"] and c["nomeFederacao"] for c in cands.values() if c["tipoAgremiacao"] == "FEDERAÇÃO"), "todo candidato federado tem numero e nome da federacao")
+grp = collections.defaultdict(set)
+for c in cands.values():
+    if c["tipoAgremiacao"] == "COLIGAÇÃO":
+        grp[c["sqColigacao"]].add((c["coligacao"], c["cargo"], c["uf"]))
+ok(all(len(x) == 1 for x in grp.values()), "cada sqColigacao = uma coligacao, um cargo, uma UF (%d coligacoes)" % len(grp))
 
 print("2. Arquivos locais referenciados (fotos, planos, certidoes)")
 faltando = []
