@@ -75,6 +75,8 @@ apenas Rondônia.
 | **Emendas** — quem destinou e quem efetivamente pagou recursos ao município. | **Votações** — o voto de cada parlamentar, com link para a fonte oficial. |
 | ![Colinha para a urna, versão celular](docs/img/colinha-celular.png) | ![Versão para celular](docs/img/celular.png) |
 | **Colinha** — números na ordem da urna, para imprimir ou compartilhar. | **Celular** — arquivo único que funciona sem internet. |
+| ![Coligações: grupos de deputado federal em RO](docs/img/coligacoes.png) | ![Coligações: exemplo, federações e fontes oficiais](docs/img/coligacoes-regras.png) |
+| **Coligações** — para onde vai o voto: partido, federação ou coligação de cada candidato. | **Coligações** — as regras explicadas, as federações registradas no TSE e as fontes oficiais. |
 
 Imagens geradas com os dados oficiais de setembro de 2026 e o Perfil em Ariquemes/RO. Na Emendas e na
 Colinha, nomes, fotos e números de candidatos foram borrados de propósito: as capturas ilustram o
