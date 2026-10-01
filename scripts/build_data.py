@@ -28,7 +28,7 @@ Arquivos reconhecidos em raw/ (ZIP ou CSV soltos; nao precisa extrair):
 
 Campos de cada candidato gerado (usados pelas paginas):
     sq uf sgUe ue cargo cdCargo cdEleicao nr nome urna social partido nrPartido nomePartido
-    federacao compFederacao coligacao compColigacao tipoAgremiacao sit sitApto urnaOk destVotos
+    federacao nrFederacao nomeFederacao compFederacao sqColigacao coligacao compColigacao tipoAgremiacao sit sitApto urnaOk destVotos
     ufNasc munNasc nasc idade genero instrucao estadoCivil corRaca ocupacao nacionalidade
     quilombola etnia despesaMax substituido email reeleicao chapa[]
     hist[] {ano eleicao cargo ue uf partido nr urna resultado abrang} munHist[] vezesCand vezesEleito
@@ -301,7 +301,10 @@ def build_candidatos(raw_dir):
             "nrPartido": get(row, "NR_PARTIDO"),
             "nomePartido": get(row, "NM_PARTIDO"),
             "federacao": get(row, "SG_FEDERACAO"),
+            "nrFederacao": get(row, "NR_FEDERACAO"),
+            "nomeFederacao": get(row, "NM_FEDERACAO"),
             "compFederacao": get(row, "DS_COMPOSICAO_FEDERACAO"),
+            "sqColigacao": get(row, "SQ_COLIGACAO"),
             "coligacao": get(row, "NM_COLIGACAO"),
             "compColigacao": get(row, "DS_COMPOSICAO_COLIGACAO"),
             "tipoAgremiacao": get(row, "TP_AGREMIACAO"),
