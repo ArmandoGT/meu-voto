@@ -50,6 +50,7 @@
     urna: '<path d="M4 10h16v10H4zM8 10V5h8v5M10 7h4"/>',
     dinheiro: '<rect x="3" y="6" width="18" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 9v.01M17.5 15v.01"/>',
     plenario: '<path d="M3 6h9M3 12h9M3 18h9"/><path d="m15 11 2.5 2.5L22 9"/>',
+    rede: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.3 10.9l7.4-3.7M8.3 13.1l7.4 3.7"/>',
   };
   const icone = (nome, cheio = false) => `<svg class="ico${cheio ? ' cheio' : ''}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONES[nome] || ''}</svg>`;
 
@@ -103,6 +104,36 @@
       return { pid, parl: A.parl[pid], vot: A.vot.filter((x) => x.v[pid]) };
     },
   };
+
+  // ---------- partido, federação e coligação ----------
+  // No TSE, NM_COLIGACAO vale "FEDERAÇÃO" ou "PARTIDO ISOLADO" quando não há coligação de verdade: o tipo vem de TP_AGREMIACAO.
+  // Deputado (proporcional): o voto conta para o partido ou a federação. Cargo majoritário: coligação, sem transferência de voto.
+  const PROPORCIONAIS = ['Deputado Federal', 'Deputado Estadual', 'Deputado Distrital'];
+  const ehProporcional = (c) => PROPORCIONAIS.includes(c.cargo);
+  // "FEDERAÇÃO PSOL REDE (50-PSOL / 18-REDE)" ou "13-PT/65-PC do B/43-PV" -> ['PSOL','REDE'] / ['PT','PC do B','PV']
+  const siglasDe = (txt) => (txt || '').replace(/FEDERA[ÇC][ÃA]O[^(/]*\(([^)]*)\)/gi, '$1').split('/')
+    .map((s) => s.trim().replace(/^\d+\s*-\s*/, '')).filter(Boolean);
+  const chaveSigla = (s) => norm(s).replace(/[^a-z0-9]/g, '');
+  // nome em título, mantendo em maiúsculas as siglas que não são palavras ("FE Brasil", "PSOL Rede", mas "União Progressista")
+  const nomeComSiglas = (s, siglas = []) => {
+    const ks = new Set([...siglas, 'FE'].map((x) => x.toUpperCase().replace(/\s+/g, '')).filter((k) => k.length <= 4 && !['REDE', 'PODE', 'NOVO', 'AGIR'].includes(k)));
+    return titulo(s).replace(/[A-Za-zÀ-ú]+/g, (w) => ks.has(w.toUpperCase()) ? w.toUpperCase() : w);
+  };
+  function agremiacao(c) {
+    const tipo = norm(c.tipoAgremiacao).startsWith('federa') ? 'federacao' : norm(c.tipoAgremiacao).startsWith('colig') ? 'coligacao' : 'partido';
+    if (tipo === 'federacao') {
+      const partidos = siglasDe(c.compFederacao);
+      return { tipo, chave: 'F' + (c.nrFederacao || c.federacao), partidos, rotuloTipo: 'Federação',
+        nome: nomeComSiglas(c.nomeFederacao || c.federacao, partidos), comp: partidos.join(' · ') };
+    }
+    if (tipo === 'coligacao') {
+      const partidos = siglasDe(c.compColigacao);
+      return { tipo, chave: 'C' + (c.sqColigacao || c.coligacao), partidos, rotuloTipo: 'Coligação',
+        nome: nomeComSiglas(c.coligacao, partidos), comp: partidos.join(' · '), compTSE: c.compColigacao };
+    }
+    return { tipo, chave: 'P' + c.partido, partidos: [c.partido], rotuloTipo: 'Partido isolado',
+      nome: c.partido + (c.nomePartido ? ' — ' + titulo(c.nomePartido) : ''), comp: c.partido };
+  }
 
   // ---------- votações (ALE-RO) ----------
   // Rótulos neutros: nenhum voto é "bom" ou "ruim"; as cores só distinguem um do outro.
@@ -512,6 +543,7 @@
       const aleroHtml = htmlAlero(c, secao);
       const concHtml = htmlConcordancia(c, secao);
       const dv = linkDivulga(c);
+      const ag = agremiacao(c);
       const cargoEscolha = opts.cargoEscolha || c.cargo;
       const escolhido = () => Store.escolhido(cargoEscolha, c.sq);
 
@@ -530,8 +562,8 @@
             <div class="meta">${tagsCandidato(c)}</div>
             <div class="detalhes">
               ${d('Partido', c.partido + (c.nomePartido ? ' — ' + titulo(c.nomePartido) : ''))}
-              ${d('Federação', c.federacao)}
-              ${d('Coligação', c.coligacao ? c.coligacao + (c.compColigacao ? ' (' + c.compColigacao + ')' : '') : c.compColigacao)}
+              ${ag.tipo === 'federacao' ? d('Federação', ag.nome + ' (' + ag.comp + ')') : ''}
+              ${ag.tipo === 'coligacao' ? d('Coligação', ag.nome + ' (' + (c.compColigacao || ag.comp) + ')') : ''}
               ${d('Situação do registro', sitCurta(c.sit) + (c.sitApto && norm(c.sitApto) !== norm(c.sit) ? ' (' + titulo(c.sitApto) + ')' : ''))}
               ${d('Apto na urna', c.urnaOk == null ? '' : c.urnaOk ? 'Sim' : 'Não')}
               ${d('Nascimento', (c.munNasc ? titulo(c.munNasc) + (c.ufNasc ? '/' + c.ufNasc : '') : '') + (c.nasc ? ' · ' + c.nasc : '') + (c.idade ? ' · ' + c.idade + ' anos' : ''))}
@@ -550,6 +582,7 @@
               ${d('E-mail', c.email)}
               ${d('Sequencial TSE', c.sq)}
             </div>
+            <div class="links-doc"><a class="btn mini ver-aliados" href="coligacoes.html#coligacoes-${esc(c.uf)}-${esc(c.sq)}" data-tela="tela-coligacoes" data-sq="${esc(c.sq)}" data-uf="${esc(c.uf)}">${icone('rede')}Para onde vai o voto em ${esc(titulo(c.urna))}</a></div>
             ${chapa ? `<div class="bloco"><b>Chapa</b>${chapa}</div>` : ''}
             ${motivos ? `<div class="bloco alerta"><b>Motivos de indeferimento / cassação registrados pelo TSE</b><ul>${motivos}</ul></div>` : ''}
             ${(propostas || certidoes) ? `<div class="links-doc">${propostas}${certidoes}</div>` : ''}
@@ -601,6 +634,7 @@
         if (document.getElementById(a.dataset.tela)) {
           e.preventDefault(); this.fechar();
           if (a.dataset.dep) { window.App.votacoesDep = a.dataset.dep; window.App.votacoesCasa = a.dataset.casa || 'alero'; }   // tela Votações abre filtrada neste parlamentar
+          if (a.dataset.sq) { window.App.coligacoesSq = a.dataset.sq; window.App.coligacoesUf = a.dataset.uf; }   // tela Coligações abre neste candidato
           Telas.mostrar(a.dataset.tela);
         }
       });
@@ -640,6 +674,7 @@
     { id: 'tela-cola', hash: '#colinha', pagina: 'meu-voto.html', icone: 'urna', rotulo: 'Colinha' },
     { id: 'tela-emendas', hash: '#emendas', pagina: 'emendas.html', icone: 'dinheiro', rotulo: 'Emendas' },
     { id: 'tela-votacoes', hash: '#votacoes', pagina: 'votacoes.html', icone: 'plenario', rotulo: 'Votações' },
+    { id: 'tela-coligacoes', hash: '#coligacoes', pagina: 'coligacoes.html', icone: 'rede', rotulo: 'Coligações', barraRotulo: 'Coliga&shy;ções' },
     { id: 'tela-perfil', hash: '#perfil', pagina: 'meu-voto.html', icone: 'pessoa', rotulo: 'Perfil' },
     { id: 'tela-mais', hash: '#mais', pagina: 'meu-voto.html', icone: 'lista', rotulo: 'Mais', barra: false },
   ];
@@ -681,11 +716,12 @@
     document.querySelector('.skip').after(t);
     if (m.amostra) t.after(el('<div class="aviso" role="status"><b>Dados de amostra (fictícios).</b> Coloque os ZIPs do TSE em raw/ e rode scripts/build_data.py — veja o README.</div>'));
     // navegação inferior (celular / janelas estreitas)
-    const nav = el(`<nav class="bottom-nav" aria-label="Navegação">${TELAS.filter((x) => x.barra !== false).map((x) => `<button type="button" data-tela="${x.id}">${icone(x.icone)}${x.rotulo}</button>`).join('')}</nav>`);
+    const nav = el(`<nav class="bottom-nav" aria-label="Navegação">${TELAS.filter((x) => x.barra !== false).map((x) => `<button type="button" data-tela="${x.id}">${icone(x.icone)}<span>${x.barraRotulo || x.rotulo}</span></button>`).join('')}</nav>`);
     nav.querySelectorAll('button').forEach((b) => b.onclick = () => Telas.mostrar(b.dataset.tela));
     document.body.appendChild(nav);
   }
 
   window.App = { normMun, fmtCurto, emendasFoco, pctFundoPublico, norm, esc, titulo, el, fmtMoeda, fmtNum, icone, CARGOS_ORDEM, VAGAS, sitClasse, sitCurta, Dados, Store, Modal, Telas, TELAS, cardCandidato, tagsCandidato, fotoHtml, montarTopo, linkDivulga, linkPje, perfil, munFoco, setPerfil, temEmendasMun, concordancia, acharVotacao, disputouEm, fotoUrl, pctVotosEm,
-    VOTO_ROT, votoTag, votoTagTexto, CASAS, fmtData, nomeMateria, linkMateria, ehVeto, LEGENDA_VETO, avisoPlacar };
+    VOTO_ROT, votoTag, votoTagTexto, CASAS, fmtData, nomeMateria, linkMateria, ehVeto, LEGENDA_VETO, avisoPlacar,
+    agremiacao, ehProporcional, chaveSigla, PROPORCIONAIS };
 })();

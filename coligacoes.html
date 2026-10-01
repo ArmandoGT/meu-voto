@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Coligações — Meu Voto 2026</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="data/manifest.js"></script>
+</head>
+<body>
+<main class="wrap" id="conteudo">
+  <section class="tela ativa" id="tela-coligacoes">
+    <div class="pagina-cab">
+      <div>
+        <h1>Coligações: para onde vai o seu voto</h1>
+        <p class="muted small">Escolha um candidato para ver com quem o voto dele é somado, ou veja os grupos de cada cargo: partidos isolados, federações e coligações registrados no TSE.</p>
+      </div>
+    </div>
+
+    <div class="card cl-mito" role="note" aria-labelledby="rot-cl-mito">
+      <h2 id="rot-cl-mito">"Votei e ele perdeu: meu voto foi para a coligação?"</h2>
+      <div class="cl-mito-grade">
+        <div><b>Deputado federal e estadual</b>Não existe mais coligação para deputado desde 2020. O voto vai para o <strong>partido ou a federação</strong> do candidato. Se ele não se eleger, o voto ainda ajuda o partido ou a federação a ganhar vagas, e essas vagas ficam com os candidatos mais votados <strong>da mesma lista</strong>. Pode eleger outra pessoa, mas só do mesmo partido ou federação.</div>
+        <div><b>Presidente, governador e senador</b>A coligação é permitida, mas o voto <strong>não se transfere</strong>. Vence quem tem mais votos (ou a maioria absoluta, para presidente e governador). O voto num candidato que perde não vai para nenhum aliado.</div>
+      </div>
+    </div>
+
+    <div class="vt-modos" role="group" aria-label="Como ver">
+      <button type="button" class="btn" data-modo="cand" aria-pressed="true">Por candidato <span class="small">com quem o voto dele é somado</span></button>
+      <button type="button" class="btn" data-modo="grupo" aria-pressed="false">Por grupo <span class="small">partidos, federações e coligações de cada cargo</span></button>
+    </div>
+
+    <section class="card" aria-labelledby="rot-cl-filtros">
+      <h2 id="rot-cl-filtros" class="sr-only">Filtros</h2>
+      <div class="em-filtros">
+        <div class="campo"><label for="cl-cargo">Cargo</label><select id="cl-cargo"></select></div>
+        <div class="campo cl-so-cand"><label for="cl-texto">Candidato (nome ou número)</label><input type="search" id="cl-texto" placeholder="ex.: 1234 ou nome de urna" autocomplete="off"></div>
+      </div>
+    </section>
+
+    <div id="cl-conteudo" aria-live="polite"></div>
+
+    <section class="card" style="margin-top:24px" aria-labelledby="rot-cl-como">
+      <h2 id="rot-cl-como">Como funciona</h2>
+      <div class="detalhes small">
+        <div><b>Coligação</b>União de partidos para lançar uma mesma chapa. Desde as eleições de 2020 só vale para cargos majoritários: presidente, governador e senador (Emenda Constitucional 97/2017; Lei 9.504/1997, art. 6º). Acaba depois da eleição.</div>
+        <div><b>Federação partidária</b>Partidos que se unem e atuam "como se fossem uma única agremiação partidária", em todo o país, por no mínimo 4 anos (Lei 14.208/2021, que criou o art. 11-A da Lei 9.096/1995). Na eleição de deputado, a federação conta como um partido só: os votos de todos os candidatos dela são somados.</div>
+        <div><b>Partido isolado</b>Partido que concorre sozinho, sem federação nem coligação. É assim que o TSE registra.</div>
+        <div><b>Voto válido</b>Contam como válidos apenas os votos dados a candidatos regularmente inscritos e às legendas (Lei 9.504/1997, art. 5º). Brancos e nulos não entram na conta.</div>
+        <div><b>Voto de legenda</b>Digitar só o número do partido na urna para deputado. O voto vai para o partido ou a federação, sem escolher candidato.</div>
+        <div><b>Quociente eleitoral</b>Votos válidos para o cargo ÷ número de vagas. Fração até meio é desprezada; acima de meio, arredonda para 1 (Código Eleitoral, art. 106).</div>
+        <div><b>Quociente partidário</b>Votos do partido ou federação (soma dos votos nos candidatos + votos de legenda) ÷ quociente eleitoral, sem a fração. É o número de vagas que o grupo ganha direto (Código Eleitoral, art. 107).</div>
+        <div><b>Quem ocupa as vagas</b>As vagas do grupo vão para os seus candidatos na ordem dos votos, desde que cada um tenha pelo menos 10% do quociente eleitoral (Código Eleitoral, art. 108).</div>
+        <div><b>Sobras</b>As vagas que sobram são distribuídas pela maior média. A Lei 14.211/2021 exige 80% do quociente para o partido e 20% para o candidato. Em 28/02/2024 o STF decidiu (ADIs 7228, 7263 e 7325) que essa exigência não vale na última fase das sobras, em que todos os partidos participam, e derrubou o art. 111 do Código Eleitoral. A decisão vale desde 2022.</div>
+        <div><b>Presidente e governador</b>Vence quem tem a maioria absoluta dos votos válidos. Se ninguém alcançar, há segundo turno entre os dois mais votados no último domingo de outubro (Lei 9.504/1997, art. 2º). Em 2026, o primeiro turno é em 4 de outubro e o segundo em 25 de outubro.</div>
+        <div><b>Senador</b>Em 2026 são duas vagas por estado (renovação de 2/3 do Senado). O eleitor vota em dois candidatos diferentes. Vencem os dois mais votados, sem segundo turno.</div>
+      </div>
+
+      <h3 class="cl-sub">Exemplo (números fictícios)</h3>
+      <div class="bloco small cl-exemplo">
+        <p>Um estado elege 8 deputados federais e tem 800 mil votos válidos. O quociente eleitoral é 800.000 ÷ 8 = <b>100 mil votos</b>.</p>
+        <p>A federação F soma 250 mil votos (todos os seus candidatos + legenda). Quociente partidário: 250.000 ÷ 100.000 = <b>2 vagas</b> (a fração vai para as sobras).</p>
+        <p>Os mais votados de F são João (90 mil) e Ana (60 mil). Maria teve 30 mil e não se elegeu, mas os votos dela entraram nos 250 mil que garantiram as 2 vagas de João e Ana. Os votos de Maria <b>não foram para nenhum outro partido</b>.</p>
+      </div>
+
+      <h3 class="cl-sub">Federações registradas no TSE</h3>
+      <div id="cl-federacoes" class="small"></div>
+
+      <h3 class="cl-sub">Fontes oficiais</h3>
+      <div class="detalhes small" id="cl-fontes"></div>
+      <p class="small muted" id="cl-rodape"></p>
+    </section>
+  </section>
+</main>
+<script src="assets/app.js"></script>
+<script src="assets/coligacoes.js"></script>
+</body>
+</html>
