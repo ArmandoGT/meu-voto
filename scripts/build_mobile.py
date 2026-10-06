@@ -130,6 +130,13 @@ def main():
             dados_js.append(js_var("CAND_" + u, lista))
         else:
             json_tags.append(json_tag("cand-" + u, lista))
+    # resultados da eleicao (opcionais): JSON lido so quando a tela Resultados ou a ficha precisam
+    n_res = 0
+    for u in todas:
+        res_p = os.path.join(DATA, "resultados_%s.js" % u)
+        if os.path.exists(res_p):
+            json_tags.append(json_tag("res-" + u, ler_js_var(res_p)))
+            n_res += 1
     cam_p = os.path.join(DATA, "camara.js")
     if os.path.exists(cam_p):
         dados_js.append(js_var("CAMARA", ler_js_var(cam_p)))
@@ -164,6 +171,8 @@ def main():
     emendas = ler("assets/emendas.js")
     votacoes = ler("assets/votacoes.js")
     coligacoes = ler("assets/coligacoes.js")
+    resultados = ler("assets/resultados.js")
+    tela_resultados = miolo(ler("resultados.html"), "tela-resultados").replace('class="tela ativa"', 'class="tela"')
     tela_coligacoes = miolo(ler("coligacoes.html"), "tela-coligacoes").replace('class="tela ativa"', 'class="tela"')
     tela_votacoes = miolo(ler("votacoes.html"), "tela-votacoes").replace('class="tela ativa"', 'class="tela"')
     tela_emendas = miolo(ler("emendas.html"), "tela-emendas").replace('class="tela ativa"', 'class="tela"')
@@ -202,6 +211,7 @@ def main():
 {tela_emendas}
 {tela_votacoes}
 {tela_coligacoes}
+{tela_resultados}
 {tela_perfil}
 {tela_mais}
 </main>
@@ -225,6 +235,9 @@ def main():
 {coligacoes}
 </script>
 <script>
+{resultados}
+</script>
+<script>
 {perfil_js}
 </script>
 </body>
@@ -235,7 +248,7 @@ def main():
     out = os.path.join(OUT_DIR, nome)
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)
-    print("OK - %s (%.1f MB, %d UFs, %d fotos embutidas)" % (out, os.path.getsize(out) / 1048576, len(todas), stats["fotos"]))
+    print("OK - %s (%.1f MB, %d UFs, %d fotos embutidas, resultados de %d UFs)" % (out, os.path.getsize(out) / 1048576, len(todas), stats["fotos"], n_res))
 
 
 if __name__ == "__main__":
