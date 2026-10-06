@@ -116,7 +116,7 @@ DivulgaCandContas.
 
 | Arquivo | O que faz |
 |---|---|
-| `mobile/meu-voto-mobile.html` | **Versão celular, offline**: um único arquivo com tudo que o desktop tem (pesquisa, ficha completa, critérios, ranking, colinha para imprimir, salvar em PNG ou compartilhar, denúncias, fontes, dados da Câmara, emendas). RO + presidente com fotos: cerca de 14 MB. `mobile/meu-voto-mobile-brasil.html`: idem com as 27 UFs (cerca de 74 MB, carregadas sob demanda). Gerados por `scripts/build_mobile.py`. |
+| `mobile/meu-voto-mobile.html` | **Versão celular, offline**: um único arquivo com tudo que o desktop tem (pesquisa, ficha completa, critérios, ranking, colinha para imprimir, salvar em PNG ou compartilhar, denúncias, fontes, dados da Câmara, emendas, coligações, resultados da eleição). RO + presidente com fotos: cerca de 16 MB. `mobile/meu-voto-mobile-brasil.html`: idem com as 27 UFs (cerca de 104 MB, carregadas sob demanda). Gerados por `scripts/build_mobile.py`. |
 | `index.html` | **Pesquisa geral**: todos os 20.063 candidatos do Brasil, com busca por nome/número e filtros (UF, cargo, partido, situação, reeleição, gênero, município/UF de nascimento, **município onde já disputou eleição**, já foi eleito, motivo de indeferimento, idade, escolaridade, ocupação, meus marcadores). Clique no candidato para ver a ficha completa. |
 | `meu-voto.html` | Quatro telas, as mesmas do celular (**Meu voto · Colinha · Perfil · Mais**; o menu do topo leva também às outras páginas). **Meu voto**: abas por cargo (com o nº de vagas real), painel de critérios com pesos, ranking com score e explicação, botão "Escolher". **Colinha**: cartão no padrão da "colinha" do e-Título — ordem da urna, dígitos em caixas, foto, nome, partido, vice/suplentes; toque em um item para abrir a ficha; botões **Imprimir / salvar PDF** (A4, sem cabeçalho do navegador) e **Compartilhar** (menu de compartilhamento do celular ou área de transferência). **Mais**: denúncias Pardal e fontes externas. Em janelas estreitas o menu vai para a barra inferior, como no celular. |
 | `emendas.html` | **Emendas parlamentares**: escolha um município de RO (abre no município do seu Perfil) e veja **quem mandou dinheiro de emendas para lá** — ranking por parlamentar (destinado × pago/recebido), destaque para quem é candidato em 2026, e a lista item a item com ano, área, objeto e quem recebeu. Filtros: federal/estadual, ano, só candidatos, com/sem emendas coletivas (bancada, comissão, relator). Gerado por `scripts/fetch_emendas.py`. |
@@ -318,7 +318,7 @@ no arquivo: a ficha mostra um link para os mesmos documentos no DivulgaCandConta
 Favoritos/escolhas ficam salvos no navegador do celular; o Exportar/Importar usa o mesmo JSON do
 computador. Rode de novo depois de cada `build_data.py` / `fetch_camara.py` / `fetch_emendas.py` / `fetch_alero.py` / `fetch_votacoes_federais.py` para atualizar.
 
-### Atualizar tudo e conferir (use na semana da eleição)
+### Atualizar tudo e conferir (inclui os resultados da eleição)
 
 ```
 python scripts\atualizar_tudo.py            # baixa o que mudou no TSE, regera dados, emendas e celular, e testa
@@ -351,8 +351,10 @@ python scripts\testes\rodar_testes.py --cruzado  # tudo + auditoria cruzada com 
   gerados contra as APIs oficiais (SAPL da ALE-RO, Câmara, Senado) e o TSE, e compara os cálculos feitos no
   navegador com os feitos em Python. Relatório em `scripts/testes/saida/auditoria_cruzada.md`.
 
-Última rodada completa (24/09/2026): os três testes passaram; a auditoria cruzada teve 32 verificações OK,
-nenhuma falha e 1 alerta que vem da própria fonte (placar de um veto de 2017 no SAPL).
+Última rodada (06/10/2026, com os resultados do 1º turno): dados 116 OK e interface 215 OK, sem falhas. Os
+avisos foram só de atualidade (PE ainda sem proclamação do TSE; base de candidatos e emendas de alguns dias atrás).
+Última auditoria cruzada (24/09/2026): 32 verificações OK, nenhuma falha e 1 alerta que vem da própria fonte
+(placar de um veto de 2017 no SAPL).
 
 ## 3. Usar
 
