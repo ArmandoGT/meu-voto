@@ -46,6 +46,7 @@ DATASETS_TUDO = [
     "denuncias-eleitorais", "denuncias-eleitorais-2024", "denuncias-eleitorais-2022", "denuncias-eleitorais-2020",
     "resultados-2022",
     "resultados-2024",
+    "resultados-2026",
     "eleitorado-2026",
     "pesquisas-eleitorais-2026",
     "processual-2026",
@@ -57,7 +58,7 @@ ESSENCIAL = [
     r"^foto_cand2026_", r"^proposta_governo_2026_", r"^certidao_criminal_2026_",
     r"^prestacao_de_contas_eleitorais_candidatos_2026",
     r"^denuncia_20(20|22|24|26)",
-    r"^votacao_candidato_munzona_20(22|24)", r"^votacao_secao_2022_(?!BR)",
+    r"^votacao_candidato_munzona_20(22|24|26)", r"^votacao_secao_2022_(?!BR)",
     r"^municipio_tse_ibge",
 ]
 # Catalogo fixo (fallback se a API do portal cair). Formato: caminho relativo ao CDN; {UF} e expandido.
@@ -79,6 +80,7 @@ CATALOGO = [
     "denuncia/denuncia_2026.zip", "denuncia/denuncia_2024.zip", "denuncia/denuncia_2022.zip", "denuncia/denuncia_2020.zip",
     "votacao_candidato_munzona/votacao_candidato_munzona_2022.zip",
     "votacao_candidato_munzona/votacao_candidato_munzona_2024.zip",
+    "votacao_candidato_munzona/votacao_candidato_munzona_2026.zip",
     "votacao_partido_munzona/votacao_partido_munzona_2022.zip",
     "detalhe_votacao_munzona/detalhe_votacao_munzona_2022.zip",
     "detalhe_votacao_munzona/detalhe_votacao_munzona_2024.zip",
