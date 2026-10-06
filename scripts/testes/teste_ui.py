@@ -6,7 +6,7 @@ Uso:  python scripts/testes/teste_ui.py            (precisa de: python -m pip in
       saida (screenshots, PDF da colinha): scripts/testes/saida/
 
 Cobre: pesquisa, ficha, todas as abas e criterios, TODAS as fichas de RO e presidente, tela Emendas em todos
-os municipios/filtros, tela Votacoes (ALE-RO) com todos os deputados/tipos/anos, tela Coligacoes (por candidato e por grupo), versao mobile, funcionamento sem os dados opcionais, impressao da colinha em PDF A4 e em PNG
+os municipios/filtros, tela Votacoes (ALE-RO) com todos os deputados/tipos/anos, tela Coligacoes (por candidato e por grupo), tela Resultados (consulta de candidato, votos por cidade, por que nao foi eleito), versao mobile, funcionamento sem os dados opcionais, impressao da colinha em PDF A4 e em PNG
 e celulares reais emulados (Pixel 7, iPhone 13, Galaxy S9+: toque, fonte minima, alvos de toque).
 """
 import os
@@ -392,12 +392,64 @@ with sync_playwright() as p:
         pg.goto(U + "#coligacoes-RO-" + dep["sq"]); pg.wait_for_timeout(2500)
         ok(pg.evaluate(OVERFLOW) == "", "coligacoes %dpx: sem rolagem horizontal [%s]" % (w, pg.evaluate(OVERFLOW)))
 
+    print("3e. Resultados 2026: panorama, consulta de candidato, votos por cidade, explicacao, estatisticas")
+    U = (ROOT / "resultados.html").as_uri()
+    pg = nova(b)
+    pg.goto(U); pg.wait_for_timeout(3000)
+    ok(pg.query_selector("#rot-rs-pan") is not None and pg.evaluate(RUIM) == "", "resultados: panorama de RO aparece, sem NaN")
+    ok("116.617" in pg.inner_text("#rs-conteudo"), "resultados: quociente eleitoral de Dep. Federal RO = 116.617 (TSE)")
+    n_el = pg.evaluate("document.querySelectorAll('section[aria-labelledby=rot-rs-el] > div table tbody tr').length")
+    ok(n_el == 8, "resultados: 8 eleitos para Dep. Federal em RO (%d)" % n_el)
+    pg.fill("#rs-texto", "2090"); pg.wait_for_timeout(300)
+    pg.click("#rs-cand .cl-res"); pg.wait_for_timeout(500)
+    txt = pg.inner_text(".rs-cand")
+    ok("Suplente" in txt and "1º suplente" in txt and "9.937" in txt and "Dr. Jaime Gazola" in txt,
+       "resultados: Rafael Fera = 1o suplente do PODE, faltaram 9.937 votos (ultimo eleito da lista: Dr. Jaime Gazola)")
+    primeira = pg.inner_text(".rs-mun tbody tr:first-child")
+    pg.click(".rs-ord"); pg.wait_for_timeout(200)
+    ultima = pg.inner_text(".rs-mun tbody tr:first-child")
+    ok("Ariquemes/RO" in primeira and primeira != ultima and "Mais votos" not in pg.inner_text(".rs-ord"),
+       "resultados: cidades do maior para o menor (1a: Ariquemes/RO) e o botao inverte a ordem")
+    vs = pg.evaluate("[...document.querySelectorAll('.rs-mun tbody tr td:nth-child(3)')].map(t => +t.textContent.replace(/\\D/g, ''))")
+    ok(len(vs) > 5 and vs == sorted(vs), "resultados: ordem crescente de votos confere")
+    pg.fill(".rs-filtro", "ariq"); pg.wait_for_timeout(200)
+    ok(pg.evaluate("document.querySelectorAll('.rs-mun tbody tr').length") == 1, "resultados: filtro de cidade")
+    pg.click(".rs-voltar"); pg.fill("#rs-texto", "jonatas"); pg.wait_for_timeout(300)
+    pg.click("#rs-cand .cl-res"); pg.wait_for_timeout(400)
+    txt = pg.inner_text(".rs-expl")
+    ok("não conquistou nenhuma vaga" in txt and "80%" in txt and "26.391" in txt,
+       "resultados: Jonatas Franca (Republicanos sem vaga) explica os 80% e quantos votos faltaram")
+    pg.select_option("#rs-cargo", "Governador"); pg.wait_for_timeout(300)
+    ok("Eleito" in pg.inner_text("section[aria-labelledby=rot-rs-el]"), "resultados: governador de RO eleito no 1o turno")
+    pg.select_option("#rs-cargo", "Presidente"); pg.wait_for_timeout(500)
+    ok("2º turno" in pg.inner_text("section[aria-labelledby=rot-rs-el]") and pg.query_selector("#rot-rs-uf") is not None,
+       "resultados: presidente com 2o turno e tabela por estado")
+    pg.select_option("#rs-uf", "SP"); pg.wait_for_timeout(4000)
+    ok(pg.eval_on_selector("#rs-cargo", "e => e.value") == "Presidente", "resultados: trocar de estado mantem o cargo")
+    pg.select_option("#rs-cargo", "Deputado Federal"); pg.wait_for_timeout(500)
+    ok(pg.query_selector("#rot-rs-mais") is not None and pg.query_selector("#rot-rs-dist") is not None,
+       "resultados SP: lista 'mais votos que um eleito' e distribuicao das vagas")
+    ok(not pg._erros, "resultados: sem erros de console %s" % pg._erros[:3])
+    # ficha (outra pagina) -> bloco Eleicao 2026 -> resultado detalhado
+    pg = nova(b)
+    pg.goto((ROOT / "index.html").as_uri()); pg.wait_for_timeout(2500)
+    pg.evaluate("App.Modal.abrir(App.Dados.cache.RO.find(c => c.nr == '2090' && c.cargo === 'Deputado Federal'))")
+    pg.wait_for_selector(".ficha-res:not([hidden])", timeout=10000)
+    ok("Suplente" in pg.inner_text(".ficha-res"), "ficha: bloco Eleicao 2026 com a situacao")
+    pg.click(".ficha-res a"); pg.wait_for_timeout(3500)
+    ok(pg.query_selector(".rs-cand") is not None and "Rafael Fera" in pg.inner_text(".rs-cand h3"), "ficha: link abre o resultado detalhado do candidato")
+    for w in (390, 320):
+        pg = nova(b, w, 844)
+        pg.goto(U); pg.wait_for_timeout(3000)
+        pg.fill("#rs-texto", "2090"); pg.wait_for_timeout(300); pg.click("#rs-cand .cl-res"); pg.wait_for_timeout(400)
+        ok(pg.evaluate(OVERFLOW) == "", "resultados %dpx: sem rolagem horizontal [%s]" % (w, pg.evaluate(OVERFLOW)))
+
     print("4. Versao mobile (arquivo unico)")
     pg = nova(b, 390, 844)
     pg.goto((ROOT / "mobile" / "meu-voto-mobile.html").as_uri()); pg.wait_for_timeout(3500)
     ok(pg.query_selector('.bottom-nav button[data-tela="tela-mais"]') is None and pg.query_selector('.bottom-nav button[data-tela="tela-perfil"]') is not None,
        "mobile: barra inferior tem Perfil; Mais fica no Perfil (e no topo, no computador)")
-    for tela in ("tela-busca", "tela-voto", "tela-cola", "tela-emendas", "tela-votacoes", "tela-coligacoes", "tela-perfil"):
+    for tela in ("tela-busca", "tela-voto", "tela-cola", "tela-emendas", "tela-votacoes", "tela-coligacoes", "tela-resultados", "tela-perfil"):
         pg.click('.bottom-nav button[data-tela="%s"]' % tela); pg.wait_for_timeout(400)
         ativa = pg.eval_on_selector(".tela.ativa", "e => e.id")
         ok(ativa == tela and pg.evaluate(RUIM) == "", "mobile: tela %s abre, sem NaN" % tela)
@@ -427,19 +479,25 @@ with sync_playwright() as p:
     pg.click(".modal .ver-aliados"); pg.wait_for_timeout(400)
     ok(pg.eval_on_selector(".tela.ativa", "e => e.id") == "tela-coligacoes" and pg.query_selector("#tela-coligacoes .cl-destino") is not None,
        "mobile: link da ficha abre Coligacoes no candidato")
+    # ficha -> "Resultado detalhado" no mesmo arquivo
+    pg.evaluate("App.Modal.abrir(App.Dados.cache.RO.find(c => c.nr == '2090' && c.cargo === 'Deputado Federal'))")
+    pg.wait_for_selector(".ficha-res:not([hidden])", timeout=10000)
+    pg.click(".ficha-res a"); pg.wait_for_timeout(500)
+    ok(pg.eval_on_selector(".tela.ativa", "e => e.id") == "tela-resultados" and pg.query_selector("#tela-resultados .rs-cand") is not None,
+       "mobile: link da ficha abre Resultados no candidato")
     ok(not pg._erros, "mobile: sem erros de console %s" % pg._erros[:3])
     pg.screenshot(path=str(SP / "t_mobile.png"))
 
     print("5. Sem arquivos opcionais (emendas.js, camara.js, denuncias.js, alero.js)")
     tmp = pathlib.Path(tempfile.mkdtemp())
-    for f in ("index.html", "meu-voto.html", "emendas.html", "votacoes.html", "coligacoes.html"):
+    for f in ("index.html", "meu-voto.html", "emendas.html", "votacoes.html", "coligacoes.html", "resultados.html"):
         shutil.copy(ROOT / f, tmp / f)
     shutil.copytree(ROOT / "assets", tmp / "assets")
     (tmp / "data").mkdir()
     for f in os.listdir(ROOT / "data"):
-        if f.endswith(".js") and f not in ("emendas.js", "camara.js", "denuncias.js", "alero.js", "votacoes_federais.js"):
+        if f.endswith(".js") and f not in ("emendas.js", "camara.js", "denuncias.js", "alero.js", "votacoes_federais.js") and not f.startswith("resultados_"):
             shutil.copy(ROOT / "data" / f, tmp / "data" / f)
-    for f in ("index.html", "meu-voto.html", "emendas.html", "votacoes.html", "coligacoes.html"):
+    for f in ("index.html", "meu-voto.html", "emendas.html", "votacoes.html", "coligacoes.html", "resultados.html"):
         pg = nova(b)
         pg._erros = []
         pg.on("pageerror", lambda e, pg=pg: pg._erros.append(str(e)))
@@ -450,9 +508,13 @@ with sync_playwright() as p:
             ok("fetch_emendas.py" in pg.inner_text("#em-conteudo"), "emendas.html sem dados mostra instrucao")
         if f == "votacoes.html":
             ok("fetch_alero.py" in pg.inner_text("#vt-conteudo"), "votacoes.html sem dados mostra instrucao")
+        if f == "resultados.html":
+            ok("fetch_resultados.py" in pg.inner_text("#rs-conteudo"), "resultados.html sem dados mostra instrucao")
         if f == "meu-voto.html":
             pg.click("#rank .rank-item .info"); pg.wait_for_timeout(300)
             ok(pg.query_selector(".modal") is not None and "Emendas parlamentares" not in pg.inner_text(".modal"), "ficha sem emendas.js abre e omite a secao")
+            pg.wait_for_timeout(500)
+            ok(pg.query_selector(".ficha-res:not([hidden])") is None, "ficha sem resultados_XX.js omite o bloco Eleicao 2026")
     shutil.rmtree(tmp, ignore_errors=True)
 
     print("6. Impressao da colinha (PDF A4 real, como no 'Salvar em PDF')")
@@ -525,7 +587,7 @@ with sync_playwright() as p:
         ok(modal and modal["cobre"] and modal["fechar"] and modal["rolou"], "%s: ficha em tela cheia, rola ate o fim, botao fechar visivel %s" % (nome, modal))
         pg.tap(".modal .fechar"); pg.wait_for_timeout(300)
         ok(pg.query_selector(".modal") is None, "%s: fechar a ficha por toque" % nome)
-        for tela in ("tela-busca", "tela-voto", "tela-cola", "tela-emendas", "tela-votacoes", "tela-coligacoes", "tela-perfil", "tela-mais"):
+        for tela in ("tela-busca", "tela-voto", "tela-cola", "tela-emendas", "tela-votacoes", "tela-coligacoes", "tela-resultados", "tela-perfil", "tela-mais"):
             pg.evaluate("App.Telas.mostrar('%s')" % tela); pg.wait_for_timeout(300)
             r = pg.evaluate("""(() => {
               const vis = [...document.querySelectorAll('.tela.ativa *, .bottom-nav *')].filter(e => e.offsetParent !== null && e.childNodes.length && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()));

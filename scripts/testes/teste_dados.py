@@ -5,7 +5,8 @@ teste_dados.py - confere os arquivos gerados (data/*.js) contra as fontes brutas
 Uso:  python scripts/testes/teste_dados.py        (sai com codigo 1 se algum teste falhar)
 
 Cobre: candidatos x consulta_cand, arquivos locais (fotos/PDFs), limite de gastos, prestacao de contas x CSV
-do TSE, emendas x CSV da CGU, casamento autor -> candidato (sem homonimos), registro de downloads e
+do TSE, emendas x CSV da CGU, casamento autor -> candidato (sem homonimos), resultados 2026 x TSE (vagas, eleitos,
+votos por cidade, "quantos votos faltaram" refeito), registro de downloads e
 atualidade dos dados (avisos, nao falhas).
 """
 import collections
@@ -334,6 +335,79 @@ if os.path.exists(vf_p):
     ok(not [v for x in VF["senado"]["vot"] for v in x["v"].values() if v in ("P-NRV", "AP", "MIS", "NCom")], "senado: siglas de ausencia/licenca traduzidas por extenso")
 else:
     print("  (sem data/votacoes_federais.js - rode scripts/fetch_votacoes_federais.py)")
+
+print("6e. Resultados 2026 (data/resultados_XX.js) x arquivos do TSE")
+sys.path.insert(0, os.path.join(ROOT, "scripts"))
+import build_resultados as BRS  # noqa: E402
+PASTA_RES = os.path.join(RAW, "resultados2026", "t1")
+UFS27 = "AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO".split()
+if not os.path.exists(os.path.join(DATA, "resultados_RO.js")):
+    aviso(False, "resultados 2026 ainda nao gerados (python scripts/fetch_resultados.py e build_resultados.py)")
+else:
+    n_cargos = n_oficiais = n_mun = n_mun_ok = n_falta = n_falta_ok = 0
+    erros_vag, erros_mun, erros_falta, erros_st = [], [], [], []
+    for uf in UFS27:
+        R = ler(os.path.join(DATA, "resultados_%s.js" % uf))
+        for cargo, bl in R["cargos"].items():
+            n_cargos += 1
+            bruto = BRS.ler_json(os.path.join(PASTA_RES, "%s-c%04d-e006259-u.json" % (uf.lower(), bl["cd"])))
+            raw_c = {k["sqcand"]: k for a in bruto["carg"][0]["agr"] for p_ in a["par"] for k in p_["cand"]}
+            # votos e situacao iguais aos do TSE
+            for sq, k in bl["cand"].items():
+                r = raw_c.get(sq)
+                if not r or int(r["vap"]) != k["v"] or (r.get("st") or "") != (k["st"] or ""):
+                    erros_st.append("%s %s %s" % (uf, cargo, sq))
+                if k.get("mun"):
+                    n_mun += 1
+                    if sum(v for _, v in k["mun"]) == k["v"]:
+                        n_mun_ok += 1
+                    else:
+                        erros_mun.append("%s %s %s: %d x %d" % (uf, cargo, k["nome"], sum(v for _, v in k["mun"]), k["v"]))
+            if bl["cd"] not in (6, 7, 8):
+                continue
+            # vagas por lista e quociente iguais aos do TSE (so quando o TSE ja proclamou)
+            if bl["oficial"]:
+                n_oficiais += 1
+                vag_raw = [int(a.get("vag") or 0) for a in bruto["carg"][0]["agr"]]
+                if [a["vag"] for a in bl["agr"]] != vag_raw or bl["qe"] != int(bruto["carg"][0]["qe"]):
+                    erros_vag.append("%s %s" % (uf, cargo))
+                if sum(a["vag"] for a in bl["agr"]) != bl["nv"]:
+                    erros_vag.append("%s %s: soma das vagas" % (uf, cargo))
+            # "quantos votos faltaram": com x votos a mais e eleito, com x-1 nao (refaz o calculo inteiro)
+            agrs = [{"votos": a["votos"], "cands": []} for a in bl["agr"]]
+            for sq, k in bl["cand"].items():
+                if (k["dvt"] or "").startswith("V"):
+                    agrs[k["a"]]["cands"].append((sq, k["v"], BRS.nasc_ord(raw_c[sq].get("dt"))))
+            amostra = [(sq, k) for sq, k in bl["cand"].items() if (k.get("x") or {}).get("falta")]
+            if uf not in ("RO", "SP"):
+                amostra = amostra[:5]
+            for sq, k in amostra:
+                n_falta += 1
+                x = k["x"]["falta"]
+                el = lambda d: any(s_ == sq for _, s_, _, _ in BRS.calcular_vagas(agrs, bl["nv"], (k["a"], sq, d))[1])  # noqa: E731
+                if el(x) and not el(x - 1):
+                    n_falta_ok += 1
+                else:
+                    erros_falta.append("%s %s %s +%d" % (uf, cargo, k["nome"], x))
+            # todo nao eleito com voto valido tem explicacao
+            sem = [k["nome"] for k in bl["cand"].values() if not (k["e"] or k.get("pe")) and k["dvt"].startswith("V") and not k.get("x")]
+            if sem:
+                erros_falta.append("%s %s sem explicacao: %s" % (uf, cargo, sem[:3]))
+    ok(not erros_st, "resultados: votos e situacao de todos os candidatos iguais aos do TSE (%d cargos) %s" % (n_cargos, erros_st[:3]))
+    ok(not erros_vag and n_oficiais >= 50, "resultados: calculo refeito = TSE em %d cargos proporcionais proclamados (quociente, vagas por lista, eleitos) %s" % (n_oficiais, erros_vag[:3]))
+    ok(n_mun and n_mun == n_mun_ok, "resultados: soma dos votos por cidade = total do TSE em %d de %d candidatos %s" % (n_mun_ok, n_mun, erros_mun[:3]))
+    ok(n_falta and n_falta == n_falta_ok, "resultados: 'quantos votos faltaram' confere refazendo a distribuicao (%d de %d) %s" % (n_falta_ok, n_falta, erros_falta[:3]))
+    RB = ler(os.path.join(DATA, "resultados_BR.js"))["cargos"]["Presidente"]
+    ok(all(sum(v for _, v in k.get("mun", [])) == k["v"] for k in RB["cand"].values()), "resultados: Presidente, soma dos %d municipios = total nacional de cada candidato" % len(ler(os.path.join(DATA, "resultados_BR.js"))["muns"]))
+    ro = ler(os.path.join(DATA, "resultados_RO.js"))["cargos"]["Deputado Federal"]
+    por_nome = {k["nome"]: k for k in ro["cand"].values()}
+    fera, jon = por_nome.get("RAFAEL FERA", {}), por_nome.get("JÔNATAS FRANÇA", {})
+    ok(ro["qe"] == 116617 and fera.get("st") == "Suplente" and fera["x"].get("falta") == 9937 and fera["x"].get("ultAgr") == ["DR. JAIME GAZOLA", 35398],
+       "resultados RO: QE 116.617; Rafael Fera suplente, 9.937 votos a menos que o ultimo eleito do PODE")
+    ok(jon.get("x", {}).get("vagAgr") == 0 and not jon["x"]["pc20"] and jon["x"].get("falta") == 26391,
+       "resultados RO: Jonatas Franca (Republicanos, sem vaga, abaixo de 20% do QE) precisaria de mais 26.391 votos")
+    aviso(all(ler(os.path.join(DATA, "resultados_%s.js" % u))["cargos"][c]["oficial"] for u in UFS27 for c in ler(os.path.join(DATA, "resultados_%s.js" % u))["cargos"]),
+          "resultados: todos os cargos ja proclamados pelo TSE (os demais aparecem como projecao)")
 
 print("7. Registro de downloads")
 reg = json.load(open(os.path.join(RAW, "_downloads.json"), encoding="utf-8"))
