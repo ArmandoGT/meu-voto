@@ -1,6 +1,6 @@
 # Estado do projeto e próximos passos
 
-Última sessão: **24/09/2026**. Eleição: **04/10/2026**.
+Última sessão: **06/10/2026**. 1º turno: **04/10/2026**; 2º turno: **25/10/2026**.
 
 ## O que está pronto e conferido
 
@@ -31,6 +31,12 @@
   do total), grafias "D'Oeste"/"do Oeste" (5 municípios de RO perdiam emendas/histórico), número da lei vindo da
   norma publicada. Resta 1 alerta da própria fonte (placar do veto 87/2017).
 
+- **Resultados do 1º turno** (06/10/2026): tela `resultados.html` (+ bloco na ficha e no celular).
+  `scripts/fetch_resultados.py` (site de divulgação do TSE, inclusive Presidente município a município) e
+  `scripts/build_resultados.py` (votos por cidade do `votacao_candidato_munzona_2026.zip`, cálculo das vagas
+  conferido com o TSE, explicação de quem não se elegeu e "quantos votos faltaram"). Em 06/10, PE (deputados)
+  ainda estava "Aguarde reprocessamento da eleição" no TSE: aparece como projeção até o TSE proclamar.
+
 ## Regra de todas as votações: neutralidade
 
 O sistema só mostra "na votação X, o político Y votou Z", com link para a fonte oficial. Nada de rotular voto
@@ -51,6 +57,16 @@ python scripts\build_mobile.py --todas          # (opcional) versão Brasil do a
 
 Situações das candidaturas e prestação de contas mudam até o dia 4/10. Imprima a colinha (Meu voto → Colinha →
 Imprimir) depois dessa atualização.
+
+## Depois do 1º turno
+
+```
+python scriptstualizar_tudo.py                # inclui os resultados (TSE) e testa
+python scriptsetch_resultados.py --turno 2    # a partir de 25/10 (Presidente e governadores no 2º turno)
+```
+
+O 2º turno ainda não tem tela própria: `fetch_resultados.py --turno 2` já baixa os arquivos (eleições 6258/6260),
+falta `build_resultados.py --turno 2` juntar os dois turnos na tela.
 
 ## Ideias para depois (não bloqueiam)
 

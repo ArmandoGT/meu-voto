@@ -41,6 +41,12 @@ apenas Rondônia.
   federação, e a tela lista os outros candidatos que esse voto pode ajudar a eleger. Para presidente, governador
   e senador, mostra a coligação e explica que o voto não se transfere. Inclui as regras (quociente eleitoral,
   sobras, federações) com links para a lei, o STF e o TSE.
+- **Resultados** (1º turno de 4/10/2026): a apuração oficial do TSE por estado e cargo. Para cada candidato:
+  votos, colocação, **votos em cada cidade** (do maior para o menor ou do menor para o maior), situação
+  (eleito, suplente, não eleito, 2º turno) e, para quem não se elegeu, **por que não foi eleito e quantos votos
+  faltaram**. Mostra quem teve mais votos que um eleito e ficou de fora, o cálculo das vagas com os números
+  reais (quociente eleitoral, quociente partidário, sobras) e estatísticas (participação por cidade, mais
+  votado em cada cidade, perfil dos eleitos, gasto declarado por voto).
 - **Versão para celular** em um único arquivo HTML, que funciona sem internet.
 - **Testes automáticos** dos dados e da interface, incluindo auditoria cruzada com as APIs oficiais.
 
@@ -77,6 +83,8 @@ apenas Rondônia.
 | **Colinha** — números na ordem da urna, para imprimir ou compartilhar. | **Celular** — arquivo único que funciona sem internet. |
 | ![Coligações: grupos de deputado federal em RO](docs/img/coligacoes.png) | ![Coligações: exemplo, federações e fontes oficiais](docs/img/coligacoes-regras.png) |
 | **Coligações** — para onde vai o voto: partido, federação ou coligação de cada candidato. | **Coligações** — as regras explicadas, as federações registradas no TSE e as fontes oficiais. |
+| ![Resultados: consulta de um candidato com votos por cidade](docs/img/resultados-candidato.png) | ![Resultados: como as vagas de deputado foram distribuídas](docs/img/resultados-vagas.png) |
+| **Resultados** — votos de cada candidato cidade por cidade, situação e por que não foi eleito. | **Resultados** — o cálculo das vagas com os números reais do TSE. |
 
 Imagens geradas com os dados oficiais de setembro de 2026 e o Perfil em Ariquemes/RO. Na Emendas e na
 Colinha, nomes, fotos e números de candidatos foram borrados de propósito: as capturas ilustram o
@@ -113,6 +121,7 @@ DivulgaCandContas.
 | `meu-voto.html` | Quatro telas, as mesmas do celular (**Meu voto · Colinha · Perfil · Mais**; o menu do topo leva também às outras páginas). **Meu voto**: abas por cargo (com o nº de vagas real), painel de critérios com pesos, ranking com score e explicação, botão "Escolher". **Colinha**: cartão no padrão da "colinha" do e-Título — ordem da urna, dígitos em caixas, foto, nome, partido, vice/suplentes; toque em um item para abrir a ficha; botões **Imprimir / salvar PDF** (A4, sem cabeçalho do navegador) e **Compartilhar** (menu de compartilhamento do celular ou área de transferência). **Mais**: denúncias Pardal e fontes externas. Em janelas estreitas o menu vai para a barra inferior, como no celular. |
 | `emendas.html` | **Emendas parlamentares**: escolha um município de RO (abre no município do seu Perfil) e veja **quem mandou dinheiro de emendas para lá** — ranking por parlamentar (destinado × pago/recebido), destaque para quem é candidato em 2026, e a lista item a item com ano, área, objeto e quem recebeu. Filtros: federal/estadual, ano, só candidatos, com/sem emendas coletivas (bancada, comissão, relator). Gerado por `scripts/fetch_emendas.py`. |
 | `votacoes.html` | **Votações**: como votaram os parlamentares de RO. Quatro modos: ALE-RO votações nominais (voto de cada deputado estadual), ALE-RO leis sem voto individual (votação simbólica, desde 2023, com autoria e declarações oficiais), Câmara dos Deputados e Senado Federal (candidatos de RO que são ou foram deputados federais/senadores). Filtros por parlamentar, tipo, ano e texto. Só mostra o que as fontes oficiais registram, sem classificar votos como bons ou ruins. Gerado por `scripts/fetch_alero.py` e `scripts/fetch_votacoes_federais.py`. |
+| `resultados.html` | **Resultados da eleição 2026**: escolha o estado e o cargo. **Consultar um candidato** (nome ou número, ou "Resultado detalhado" na ficha): votos, % dos válidos, colocação geral e na lista do partido, tabela de **votos por cidade** com ordem crescente/decrescente, filtro e a cidade do seu Perfil destacada, e a explicação do resultado. Para deputado não eleito: quantas vagas a lista dele ganhou, em que posição ele ficou, quem foi o último eleito da lista, se passou dos 10% / 20% do quociente, quantos votos a mais a lista precisaria para ganhar uma vaga e **quantos votos faltaram** para ele ser eleito (calculado refazendo toda a distribuição das vagas). Para presidente e governador: maioria absoluta e 2º turno. Para senador: as 2 vagas. Também: panorama (comparecimento, abstenção, brancos, nulos, legenda), eleitos, **"tiveram mais votos que um eleito e não se elegeram"**, a distribuição das vagas com os números reais, presidente por estado e estatísticas. Gerado por `scripts/fetch_resultados.py` e `scripts/build_resultados.py`. |
 | `coligacoes.html` | **Coligações**: para onde vai o voto. **Por candidato**: escolha um candidato (ou use "Para onde vai o voto" na ficha). Para deputado, mostra o partido ou a federação e os outros candidatos do mesmo grupo, que somam votos entre si. Para presidente, governador e senador, mostra a coligação, a chapa e os candidatos apoiados pelos mesmos partidos, e avisa que o voto não se transfere. **Por grupo**: partidos isolados, federações e coligações de cada cargo, com os candidatos. Explicação das regras com fontes oficiais (Constituição, leis, STF, TSE). Usa os campos de agremiação do `consulta_cand` do TSE. |
 
 **Ficha do candidato** (modal): foto oficial, **atuação na Câmara dos Deputados** (para quem já é deputado: proposições, frentes, comissões e links "Como votou", "Projetos", "Gastos" — via `scripts/fetch_camara.py`), situação do julgamento, chapa (vice/suplentes com foto e certidões), dados pessoais,
@@ -267,20 +276,44 @@ python scripts/fetch_votacoes_federais.py --desde 2023 # só a legislatura atual
   "Votou" em votação secreta, ausências e licenças por extenso). A tela mostra só os candidatos de RO e o placar
   da votação inteira.
 
+### Resultados da eleição 2026 (precisa de internet)
+
+```
+python scripts/fetch_resultados.py            # site de divulgação do TSE -> raw/resultados2026/t1/ (~1 min)
+python scripts/baixar_tse.py --so votacao_candidato_munzona_2026   # votos por município e zona (316 MB)
+python scripts/build_resultados.py            # -> data/resultados_XX.js (27 UFs + BR, ~1 min)
+python scripts/fetch_resultados.py --turno 2  # depois de 25/10 (2º turno)
+```
+
+- **Totais, situação de cada candidato e vagas por partido**: arquivos oficiais do site de divulgação
+  (`resultados.tse.jus.br/oficial/ele2026/`; eleição 6257 = Presidente, 6259 = estaduais). Inclui o quociente
+  eleitoral, os votos nominais e de legenda de cada lista e o comparecimento por município.
+- **Votos por cidade**: `votacao_candidato_munzona_2026.zip` dos dados abertos (lido por UF; o arquivo do Brasil
+  inteiro tem 3 GB). Esse arquivo ainda não traz Presidente; por isso os votos de presidente por cidade vêm do site
+  de divulgação, município a município (5.757 arquivos pequenos, baixados em paralelo e resumidos em
+  `pres_mun.json`).
+- **Distribuição das vagas**: `build_resultados.py` refaz o cálculo da lei (Código Eleitoral arts. 106 a 109,
+  Lei 14.211/2021 e a decisão do STF de 2024 sobre a última fase das sobras) e **para com erro se o resultado não
+  for idêntico ao do TSE** (quociente, vagas de cada lista e eleitos). As explicações e o "quantos votos
+  faltaram" só são gerados sobre esse cálculo conferido. Cargo que o TSE ainda não proclamou (ex.: "Aguarde
+  reprocessamento da eleição") aparece como **projeção**, com aviso.
+- O % dos votos válidos segue o do TSE: quando há votos anulados sub judice, a base inclui esses votos (é assim que
+  o TSE decide se há maioria absoluta no 1º turno).
+
 ### Versão para celular (offline)
 
 ```
-python scripts/build_mobile.py               # mobile/meu-voto-mobile.html (RO + presidente, com fotos, ~14 MB)
+python scripts/build_mobile.py               # mobile/meu-voto-mobile.html (RO + presidente, com fotos e resultados, ~16 MB)
 python scripts/build_mobile.py --sem-fotos   # 1,1 MB
 python scripts/build_mobile.py --uf MT       # outra UF
 ```
 
 ```
-python scripts/build_mobile.py --todas       # meu-voto-mobile-brasil.html: todas as UFs (~74 MB)
+python scripts/build_mobile.py --todas       # meu-voto-mobile-brasil.html: todas as UFs (~104 MB com os resultados)
 ```
 
 Um arquivo só, sem dependências: funciona em qualquer navegador de celular sem internet. Navegação inferior
-com sete telas (Pesquisar · Meu voto · Colinha · Emendas · Votações · Coligações · Perfil); Mais fica no Perfil. Os PDFs de certidões e planos (300 MB) não cabem
+com oito telas (Pesquisar · Meu voto · Colinha · Emendas · Votações · Coligações · Resultados · Perfil); Mais fica no Perfil. Os PDFs de certidões e planos (300 MB) não cabem
 no arquivo: a ficha mostra um link para os mesmos documentos no DivulgaCandContas (abre com internet).
 Favoritos/escolhas ficam salvos no navegador do celular; o Exportar/Importar usa o mesmo JSON do
 computador. Rode de novo depois de cada `build_data.py` / `fetch_camara.py` / `fetch_emendas.py` / `fetch_alero.py` / `fetch_votacoes_federais.py` para atualizar.
@@ -303,11 +336,14 @@ python scripts\testes\rodar_testes.py --cruzado  # tudo + auditoria cruzada com 
 - `teste_dados.py` — confere os arquivos gerados contra os brutos: candidatos x TSE, fotos/PDFs existentes,
   limite de gastos, receitas e despesas de cada candidato de RO centavo a centavo, totais de emendas x CGU,
   casamento autor → candidato (lista de homônimos/parentes que nunca podem casar), federações e coligações x TSE
-  (nenhum deputado em coligação, só as 5 federações registradas), downloads íntegros e
+  (nenhum deputado em coligação, só as 5 federações registradas), **resultados 2026 x TSE** (votos e situação
+  de todos os candidatos, vagas e eleitos refeitos, soma dos votos por cidade = total, e o "quantos votos
+  faltaram" conferido refazendo a distribuição com esse número e com um voto a menos), downloads íntegros e
   **avisos de dados velhos** (base, emendas e prestação de contas).
 - `teste_ui.py` — abre o sistema no Edge (sem janela): pesquisa, todas as abas e critérios, **todas as fichas
   de RO e presidente**, tela Emendas em todos os municípios e filtros, tela Coligações (deputado federado,
-  governador, senador e grupos de cada cargo), versão celular, funcionamento sem os
+  governador, senador e grupos de cada cargo), tela Resultados (consulta de candidato, ordem das cidades,
+  explicações, troca de estado, link da ficha), versão celular, funcionamento sem os
   dados opcionais, **impressão da colinha em PDF A4** (salvo em `scripts/testes/saida/colinha.pdf`) e
   **celulares emulados** (Pixel 7, iPhone 13, Galaxy S9+, iPhone SE: toque, fonte mínima, alvos de toque,
   sem rolagem lateral). Screenshots em `scripts/testes/saida/`.
@@ -407,6 +443,9 @@ A lista de municípios do Perfil vem de `data/municipios.js` (`python scripts/bu
   município dos doadores.
 - O TSE **não publica o domicílio eleitoral** dos candidatos; o vínculo com o município é inferido pelos sinais
   descritos acima.
+- **Resultados 2026**: números da totalização do 1º turno. Podem mudar se a Justiça Eleitoral julgar
+  candidaturas sub judice; rode `scripts\atualizar_tudo.py` de novo. Gasto por voto usa a prestação de contas
+  parcial (a final é entregue depois da eleição).
 - Os dados valem para a data em que foram baixados. Situações de candidatura mudam até o dia da eleição: rode
   `scripts\atualizar_tudo.py` antes de usar.
 
@@ -415,8 +454,9 @@ A lista de municípios do Perfil vem de `data/municipios.js` (`python scripts/bu
 Todas públicas e oficiais. O projeto é independente e não tem vínculo com nenhum desses órgãos.
 
 - **TSE** — Portal de Dados Abertos: <https://dadosabertos.tse.jus.br/> (candidatos, bens, certidões, planos de
-  governo, prestação de contas, resultados 2022/2024, denúncias do Pardal) e DivulgaCandContas:
-  <https://divulgacandcontas.tse.jus.br/>
+  governo, prestação de contas, resultados 2022/2024/2026, denúncias do Pardal), DivulgaCandContas:
+  <https://divulgacandcontas.tse.jus.br/> e Resultados (divulgação oficial da apuração):
+  <https://resultados.tse.jus.br/>
 - **Câmara dos Deputados** — Dados Abertos: <https://dadosabertos.camara.leg.br/>
 - **Senado Federal** — Dados Abertos: <https://legis.senado.leg.br/dadosabertos/>
 - **Assembleia Legislativa de Rondônia** — SAPL: <https://sapl.al.ro.leg.br/>
