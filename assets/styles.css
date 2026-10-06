@@ -89,6 +89,12 @@ table { border-collapse: collapse; }
 .nav a { text-decoration: none; padding: 0 14px; display: flex; align-items: center; gap: 8px; color: var(--text-2); font-weight: 600; border-bottom: 3px solid transparent; margin-bottom: -1px; }
 .nav a:hover { color: var(--text); }
 .nav a[aria-current="page"] { color: var(--primary); border-bottom-color: var(--primary); }
+/* nove telas no topo: encurta antes de quebrar linha */
+.nav a { white-space: nowrap; }
+@media (max-width: 1400px) { .nav a { padding: 0 10px; } .nav a .rotulo-longo { display: none; } }
+@media (max-width: 1120px) { .nav a { padding: 0 6px; gap: 5px; font-size: .88rem; } }
+@media (max-width: 1000px) { .nav a .ico { display: none; } .brand span.texto { display: none; } }
+@media (max-width: 760px) { .nav a { padding: 0 4px; font-size: .8rem; } }
 .aviso { background: var(--warn-soft); color: var(--text); border-bottom: 1px solid var(--border); padding: 8px 16px; font-size: .9rem; text-align: center; }
 .aviso b { color: var(--warn); }
 
@@ -254,7 +260,7 @@ details.painel-filtros[open] > summary .seta { transform: rotate(90deg); }
 /* ---------- telas e navegação inferior (igual no desktop e no celular) ---------- */
 .tela { display: none; }
 .tela.ativa { display: block; }
-.bottom-nav { display: none; grid-template-columns: repeat(7, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); z-index: 40; padding-bottom: env(safe-area-inset-bottom); }
+.bottom-nav { display: none; grid-template-columns: repeat(8, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); z-index: 40; padding-bottom: env(safe-area-inset-bottom); }
 .bottom-nav button { background: none; border: 0; min-height: 56px; min-width: 0; padding: 0 1px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: .7rem; letter-spacing: -.02em; line-height: 1.1; text-align: center; font-weight: 600; color: var(--text-2); cursor: pointer; }
 .bottom-nav button .ico { width: 22px; height: 22px; }
 .bottom-nav button[aria-current="page"] { color: var(--primary); }
@@ -508,3 +514,39 @@ details.painel-filtros[open] > summary .seta { transform: rotate(90deg); }
 @media (max-width: 640px) {
   .cl-mito-grade, #tela-coligacoes .detalhes { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------- Resultados ---------- */
+.rs-aviso { text-align: left; border: 1px solid var(--border); border-radius: var(--radius); margin: 0 0 16px; display: flex; gap: 8px; align-items: flex-start; }
+.rs-aviso .ico { flex: none; margin-top: 2px; }
+.rs-consulta { margin-bottom: 16px; border-left: 4px solid var(--primary); }
+.rs-consulta h2, .rs-sec h2 { font-size: 1.1rem; margin: 0 0 8px; }
+.rs-sec { margin-top: 16px; overflow-wrap: anywhere; }
+.rs-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 12px 0; }
+.rs-kpis > div { background: var(--surface-2); border-radius: var(--radius); padding: 8px 10px; display: flex; flex-direction: column; min-width: 0; }
+.rs-kpis b { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-3); }
+.rs-kpis .num { font-size: 1.2rem; font-weight: 700; }
+.rs-cand { margin-top: 8px; overflow-wrap: anywhere; }
+.rs-cand-cab { display: flex; gap: 12px; align-items: flex-start; }
+.rs-cand-cab h3 { font-size: 1.15rem; }
+.rs-cand-cab .cresce { flex: 1; min-width: 0; }
+.rs-expl { background: var(--surface-2); border-radius: var(--radius); padding: 10px 12px; margin: 10px 0; font-size: .92rem; }
+.rs-expl p { margin: 0 0 8px; }
+.rs-expl p:last-child { margin: 0; }
+.rs-mun-ctl { margin: 0 0 8px; gap: 8px; flex-wrap: wrap; }
+.rs-mun-ctl input, .rs-mun-ctl select { max-width: 260px; }
+.rs-ficha .linha { gap: 8px; flex-wrap: wrap; align-items: center; }
+.link-btn { background: none; border: 0; padding: 4px 0; min-height: 32px; min-width: 32px; color: var(--primary); font: inherit; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; min-height: 0; }
+.link-btn:hover { color: var(--primary-hover); }
+.link-btn .numero { font-family: var(--mono); font-weight: 700; text-decoration: none; display: inline-block; color: var(--text); background: var(--surface-2); border-radius: 6px; padding: 0 6px; }
+.rs-tab td { vertical-align: middle; }
+.rs-sm { display: none; }
+/* tabelas largas rolam na horizontal no celular; as de candidatos escondem colunas secundárias */
+.rs-sec .tabela, .rs-cand .tabela { min-width: 520px; }
+.rs-sec .tabela.rs-tab { min-width: 0; }
+@media (max-width: 560px) {
+  .rs-lg { display: none; }
+  .rs-sm { display: inline; }
+  .rs-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rs-cand-cab .foto.grande { width: 72px; height: 96px; }
+}
+#rs-cand { scroll-margin-top: calc(var(--header-h) + 12px); }

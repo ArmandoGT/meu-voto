@@ -50,6 +50,7 @@
     urna: '<path d="M4 10h16v10H4zM8 10V5h8v5M10 7h4"/>',
     dinheiro: '<rect x="3" y="6" width="18" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 9v.01M17.5 15v.01"/>',
     plenario: '<path d="M3 6h9M3 12h9M3 18h9"/><path d="m15 11 2.5 2.5L22 9"/>',
+    grafico: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     rede: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.3 10.9l7.4-3.7M8.3 13.1l7.4 3.7"/>',
   };
   const icone = (nome, cheio = false) => `<svg class="ico${cheio ? ' cheio' : ''}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONES[nome] || ''}</svg>`;
@@ -104,6 +105,130 @@
       return { pid, parl: A.parl[pid], vot: A.vot.filter((x) => x.v[pid]) };
     },
   };
+
+  // ---------- resultado da eleição 2026 (data/resultados_XX.js, window.RES_XX) ----------
+  // Arquivo opcional: sem ele, a ficha e as outras telas ficam como antes.
+  const Res = {
+    cache: {},
+    carregar(uf) {
+      if (!uf) return Promise.resolve(null);
+      if (uf in this.cache) return Promise.resolve(this.cache[uf]);
+      const pronto = (r) => {
+        if (r && r.cargos) Object.entries(r.cargos).forEach(([nome, b]) => { b.nome = nome; });
+        this.cache[uf] = r || null; return this.cache[uf];
+      };
+      if (window['RES_' + uf]) return Promise.resolve(pronto(window['RES_' + uf]));
+      const emb = document.getElementById('res-' + uf);   // versão celular: JSON embutido, lido sob demanda
+      if (emb) { try { return Promise.resolve(pronto(JSON.parse(emb.textContent))); } catch (e) { return Promise.resolve(pronto(null)); } }
+      if (Dados.manifest().mobile) return Promise.resolve(pronto(null));
+      return new Promise((resolve) => {
+        const s = document.createElement('script');
+        s.src = 'data/resultados_' + uf + '.js';
+        s.onload = () => resolve(pronto(window['RES_' + uf]));
+        s.onerror = () => resolve(pronto(null));
+        document.head.appendChild(s);
+      });
+    },
+    // {R, b (bloco do cargo), k (candidato no resultado)} de um candidato da base, se o arquivo já foi carregado
+    de(c) {
+      const R = this.cache[c.uf === 'BR' ? 'BR' : c.uf];
+      const b = R && R.cargos[c.cargo];
+      const k = b && b.cand[c.sq];
+      return k ? { R, b, k } : null;
+    },
+  };
+  const ordinal = (n) => n + 'º';
+  const pct = (v, total, casas = 2) => total ? (100 * v / total).toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas }) + '%' : '';
+  // "a federação União Progressista (PP / UNIÃO)" | "o partido PL" | "a coligação X"
+  const agrNome = (a, artigo = true) => {
+    if (!a) return '';
+    if (a.tipo === 'f') return (artigo ? 'a ' : '') + 'federação ' + titulo(a.nome.replace(/^FEDERA[ÇC][ÃA]O\s*/i, '')) + ' (' + a.sigla + ')';
+    if (a.tipo === 'c') return (artigo ? 'a ' : '') + 'coligação ' + titulo(a.nome);
+    return (artigo ? 'o ' : '') + 'partido ' + a.sigla;
+  };
+  // situação curta para etiqueta: texto + classe neutra (eleito = ok; suplente/2º turno = warn; não eleito = plain)
+  function situacaoRes(k) {
+    if (!k) return null;
+    if (k.pe) return { txt: 'Eleito (projeção)', cls: 'ok' };
+    if (k.p2) return { txt: '2º turno (projeção)', cls: 'warn' };
+    if (!k.st && k.x && k.x.vagAgr != null && !k.x.anulado) return k.x.vagAgr ? { txt: 'Suplente (projeção)', cls: 'warn' } : { txt: 'Não eleito (projeção)', cls: 'plain' };
+    const s = norm(k.st);
+    if (!k.dvt || !norm(k.dvt).startsWith('valido')) return { txt: 'Votos anulados (sub judice)', cls: 'bad' };
+    if (s.startsWith('eleito por qp')) return { txt: 'Eleito por quociente partidário', cls: 'ok' };
+    if (s.startsWith('eleito por media')) return { txt: 'Eleito por média (sobras)', cls: 'ok' };
+    if (s.startsWith('eleit')) return { txt: 'Eleito', cls: 'ok' };
+    if (s.includes('2')) return { txt: '2º turno', cls: 'warn' };
+    if (s.startsWith('suplente')) return { txt: 'Suplente', cls: 'warn' };
+    return { txt: k.st ? k.st.charAt(0).toUpperCase() + k.st.slice(1).toLowerCase() : 'Sem situação', cls: 'plain' };
+  }
+  // por que uma lista sem vaga ficou fora das sobras (média = votos da lista ÷ (vagas já ganhas + 1))
+  function sobrasTxt(a, b) {
+    const meds = (b.vagas || []).filter((x) => x[1] !== 'qp');
+    const m3 = meds.filter((x) => x[1] === 'm3');
+    const ult = meds.length ? meds[meds.length - 1][3] : null;
+    const oitenta = fmtNum(Math.ceil(b.qe * 0.8));
+    if (!meds.length) return 'Todas as vagas foram preenchidas pelo quociente partidário; não houve sobras.';
+    if (!a.ok80 && !m3.length) return `Para disputar as sobras precisava de pelo menos 80% do quociente (${oitenta} votos). Todas as sobras foram para listas que alcançaram esse mínimo; não restou vaga para a fase aberta a todos.`;
+    const minMed = Math.min(...(m3.length ? m3 : meds).map((x) => x[3]));
+    return `${!a.ok80 ? `Não chegou a 80% do quociente (${oitenta} votos), exigidos na 2ª fase das sobras. ` : ''}Nas sobras, cada vaga vai para a maior média (votos ÷ vagas já ganhas + 1); a média desta lista (${fmtNum(a.votos)}) ficou abaixo da menor média que levou vaga (${fmtNum(Math.round(minMed))})${ult != null && m3.length ? ', na última fase, aberta a todos' : ''}.`;
+  }
+  // Explicação neutra do resultado, em parágrafos (HTML). Só fatos e regras; os números vêm do TSE e do cálculo
+  // da lei refeito em scripts/build_resultados.py (conferido com o resultado oficial).
+  function explicarRes(k, b, opts = {}) {
+    const out = [];
+    const nomeC = '<b>' + esc(titulo(k.nome)) + '</b>';
+    const x = k.x || {};
+    const v = fmtNum(k.v);
+    const base = b.tot.baseMaioria || b.tot.validos;
+    const PROP = [6, 7, 8].includes(b.cd);
+    const eleito = k.e || k.pe;
+    if (x.anulado) {
+      out.push(`Os ${v} votos de ${nomeC} foram registrados como <b>anulados sub judice</b>: a candidatura ainda está em julgamento na Justiça Eleitoral. Enquanto isso, esses votos não contam para o candidato${PROP ? ' nem para o partido' : ''}. Se o registro for aprovado, o resultado é recalculado.`);
+      return out;
+    }
+    if (!PROP) {
+      const seg = b.segundoTurno || [];
+      const maj = b.cd === 1 || b.cd === 3;
+      if (eleito) {
+        out.push(maj ? `${nomeC} teve ${v} votos (${pct(k.v, base)} dos votos válidos) e passou da maioria absoluta (${fmtNum(b.maioria)} votos), por isso foi eleito no 1º turno.`
+          : `${nomeC} ficou em ${ordinal(k.pos)} lugar com ${v} votos. Eram ${b.nv} vaga(s): os ${b.nv} mais votados se elegem.`);
+      } else if (maj && x.maioria != null) {
+        out.push(`Ninguém teve a maioria absoluta (mais da metade dos votos válidos, ${fmtNum(b.maioria)} votos). ${nomeC} teve ${v} votos (${pct(k.v, base)}); faltaram ${fmtNum(x.maioria)} para vencer no 1º turno. Os dois mais votados disputam o <b>2º turno em 25/10</b>.`);
+        if (b.tot.anulados) out.push(`A conta inclui ${fmtNum(b.tot.anulados)} votos anulados sub judice: o TSE só declara eleito no 1º turno quando nem esses votos podem mudar o resultado.`);
+      } else if (x.ult) {
+        const regra = maj ? (seg.length ? 'Os dois mais votados vão ao 2º turno.' : 'O eleito teve a maioria absoluta dos votos válidos.') : `Eram ${b.nv} vagas: os ${b.nv} mais votados se elegem.`;
+        out.push(`${nomeC} ficou em ${ordinal(k.pos)} lugar, com ${v} votos. ${regra} Para passar ${esc(titulo(x.ult[0]))} (${fmtNum(x.ult[1])} votos), faltaram ${fmtNum(x.falta)} votos.`);
+      }
+      if (!eleito && !maj) out.push('Na eleição majoritária o voto não se transfere: os votos de quem perde não vão para nenhum aliado.');
+      return out;
+    }
+    // ---- deputados (proporcional) ----
+    const a = b.agr[k.a];
+    const grupo = agrNome(a);
+    const qe = b.qe;
+    if (eleito) {
+      if (k.st && norm(k.st).includes('media')) out.push(`${nomeC} teve ${v} votos e foi eleito <b>pela média</b>: ${esc(grupo)} somou ${fmtNum(a.votos)} votos e, depois das vagas do quociente partidário, ganhou mais vaga(s) na divisão das sobras. ${nomeC} era o ${ordinal(k.lst || 1)} mais votado da lista.`);
+      else out.push(`${nomeC} teve ${v} votos e foi eleito pelo <b>quociente partidário</b>: ${esc(grupo)} somou ${fmtNum(a.votos)} votos (${(a.votos / qe).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} vezes o quociente eleitoral de ${fmtNum(qe)}). ${nomeC} era o ${ordinal(k.lst || 1)} mais votado da lista.`);
+      if (x.sobra) out.push(`Os votos acima do quociente eleitoral (${fmtNum(x.sobra)}) ficaram para ${esc(grupo)} e ajudaram a eleger outros candidatos da mesma lista.`);
+      return out;
+    }
+    if (a.vag) {
+      const sup = (k.lst || 0) - a.vag;
+      out.push(`${esc(grupo.charAt(0).toUpperCase() + grupo.slice(1))} conquistou <b>${a.vag} vaga(s)</b>. Elas ficam com os ${a.vag} mais votados da lista. ${nomeC} ficou em ${ordinal(k.lst)} na lista${x.ultAgr ? `; o último eleito da lista, ${esc(titulo(x.ultAgr[0]))}, teve ${fmtNum(x.ultAgr[1])} votos` : ''}.`);
+      if (norm(k.st).startsWith('suplente') && sup > 0) out.push(`Por isso ${nomeC} é o <b>${ordinal(sup)} suplente</b>: assume se um eleito da lista deixar a vaga (licença, nomeação para secretário ou ministro, cassação, morte).`);
+    } else {
+      out.push(`${esc(grupo.charAt(0).toUpperCase() + grupo.slice(1))} somou ${fmtNum(a.votos)} votos (${pct(a.votos, qe, 0)} do quociente eleitoral de ${fmtNum(qe)}) e <b>não conquistou nenhuma vaga</b>. ${sobrasTxt(a, b)}`);
+      if (x.faltaAgr) out.push(`Com mais ${fmtNum(x.faltaAgr)} votos para ${esc(grupo)} (em qualquer candidato da lista ou na legenda), a lista teria ganho uma vaga, que iria para o seu candidato mais votado.`);
+    }
+    if (!x.pc10) out.push(`${nomeC} não alcançou 10% do quociente eleitoral (${fmtNum(Math.ceil(qe / 10))} votos), mínimo para ocupar uma vaga do quociente partidário. Nas sobras, a 2ª fase exige 20% (${fmtNum(Math.ceil(qe / 5))}); só a última fase não tem mínimo.`);
+    else if (!x.pc20) out.push(`${nomeC} passou de 10% do quociente eleitoral, mas não de 20% (${fmtNum(Math.ceil(qe / 5))} votos), exigidos na 2ª fase das sobras.`);
+    if (x.falta) out.push(`<b>Quantos votos faltaram:</b> mantidos os votos de todos os outros, ${nomeC} seria eleito com mais <b>${fmtNum(x.falta)}</b> votos (${fmtNum(k.v + x.falta)} no total). A conta refaz toda a distribuição das vagas com esses votos a mais.`);
+    if (x.menos) {
+      const ex = (x.menosEx || []).map((m) => `${esc(titulo(m[0]))} (${fmtNum(m[1])}, ${esc(m[2])})`).join(', ');
+      out.push(`<b>Por que ${x.menos} eleito(s) tiveram menos votos que ${nomeC}?</b> ${opts.curto ? '' : `Por exemplo: ${ex}. `}Na eleição para deputado, as vagas são divididas primeiro entre os partidos e federações, pelo total de votos de cada um (soma de todos os candidatos e da legenda). Só depois cada vaga vai para o mais votado daquela lista. Quem foi eleito com menos votos estava numa lista que ganhou vaga e foi o mais votado dela; ${a.vag ? `na lista de ${nomeC}, as ${a.vag} vaga(s) ficaram com candidatos que tiveram mais votos` : `a lista de ${nomeC} não ganhou vaga`}.`);
+    }
+    return out;
+  }
 
   // ---------- partido, federação e coligação ----------
   // No TSE, NM_COLIGACAO vale "FEDERAÇÃO" ou "PARTIDO ISOLADO" quando não há coligação de verdade: o tipo vem de TP_AGREMIACAO.
@@ -497,6 +622,26 @@
       <p class="small muted">Só entram as votações que você marcou na tela Votações e em que o candidato votou Sim ou Não. Ausência, abstenção e voto secreto não contam.</p>`, true);
   }
 
+  // ---------- ficha: bloco "Eleição 2026" (carrega o resultado da UF sob demanda) ----------
+  function fichaResultado(c, box, depois) {
+    if (!box) return;
+    Res.carregar(c.uf === 'BR' ? 'BR' : c.uf).then(() => {
+      const r = Res.de(c);
+      if (!r || !box.isConnected) return;
+      const { k, b } = r;
+      const sit = situacaoRes(k);
+      const txt = explicarRes(k, b, { curto: true });
+      const projecao = k.pe || k.p2 || !b.oficial;
+      box.innerHTML = `<div class="bloco rs-ficha"><b>Eleição 2026 — 1º turno</b>
+        <div class="linha" style="margin:4px 0"><span class="tag ${sit.cls}">${esc(sit.txt)}</span><span class="num"><b>${fmtNum(k.v)}</b> votos</span>${k.pos ? `<span class="muted small">${ordinal(k.pos)} lugar</span>` : ''}</div>
+        ${txt.length ? `<p class="small" style="margin:4px 0">${txt[0]}</p>` : ''}
+        ${projecao ? '<p class="small muted">O TSE ainda não proclamou o resultado deste cargo: a situação acima é uma projeção pelas regras da lei.</p>' : ''}
+        <div class="links-doc"><a class="btn mini" href="resultados.html#resultados-${esc(c.uf)}-${esc(c.sq)}" data-tela="tela-resultados" data-sq="${esc(c.sq)}" data-uf="${esc(c.uf)}">${icone('grafico')}Resultado detalhado: votos por cidade${k.e ? '' : ' e por que não foi eleito'}</a></div></div>`;
+      box.hidden = false;
+      if (depois) depois();
+    });
+  }
+
   // ---------- ficha (modal) ----------
   const Modal = {
     abrir(c, opts = {}) {
@@ -583,6 +728,7 @@
               ${d('Sequencial TSE', c.sq)}
             </div>
             <div class="links-doc"><a class="btn mini ver-aliados" href="coligacoes.html#coligacoes-${esc(c.uf)}-${esc(c.sq)}" data-tela="tela-coligacoes" data-sq="${esc(c.sq)}" data-uf="${esc(c.uf)}">${icone('rede')}Para onde vai o voto em ${esc(titulo(c.urna))}</a></div>
+            <div class="ficha-res" hidden></div>
             ${chapa ? `<div class="bloco"><b>Chapa</b>${chapa}</div>` : ''}
             ${motivos ? `<div class="bloco alerta"><b>Motivos de indeferimento / cassação registrados pelo TSE</b><ul>${motivos}</ul></div>` : ''}
             ${(propostas || certidoes) ? `<div class="links-doc">${propostas}${certidoes}</div>` : ''}
@@ -630,14 +776,17 @@
       m.querySelector('.fav').onclick = (e) => { const on = Store.alternarFavorito(c.sq); const b = e.currentTarget; b.setAttribute('aria-pressed', on); b.innerHTML = icone('estrela', on) + `<span class="fav-txt">${on ? 'Favorito' : 'Favoritar'}</span>`; };
       m.querySelector('.escolher').onclick = (e) => { Store.alternarEscolha(cargoEscolha, c.sq); const on = escolhido(); const b = e.currentTarget; b.classList.toggle('ok', on); b.setAttribute('aria-pressed', on); b.querySelector('.esc-txt').textContent = (on ? 'Escolhido para ' : 'Escolher para ') + cargoEscolha; };
       m.querySelector('.nota').onchange = (e) => Store.setNota(c.sq, e.target.value);
-      m.querySelectorAll('a[data-tela]').forEach((a) => a.onclick = (e) => {
+      fichaResultado(c, m.querySelector('.ficha-res'), () => ligarLinks());
+      const ligarLinks = () => m.querySelectorAll('a[data-tela]').forEach((a) => a.onclick = (e) => {
         if (document.getElementById(a.dataset.tela)) {
           e.preventDefault(); this.fechar();
           if (a.dataset.dep) { window.App.votacoesDep = a.dataset.dep; window.App.votacoesCasa = a.dataset.casa || 'alero'; }   // tela Votações abre filtrada neste parlamentar
-          if (a.dataset.sq) { window.App.coligacoesSq = a.dataset.sq; window.App.coligacoesUf = a.dataset.uf; }   // tela Coligações abre neste candidato
+          if (a.dataset.sq && a.dataset.tela === 'tela-coligacoes') { window.App.coligacoesSq = a.dataset.sq; window.App.coligacoesUf = a.dataset.uf; }   // tela Coligações abre neste candidato
+          if (a.dataset.sq && a.dataset.tela === 'tela-resultados') { window.App.resultadosSq = a.dataset.sq; window.App.resultadosUf = a.dataset.uf; }   // tela Resultados abre neste candidato
           Telas.mostrar(a.dataset.tela);
         }
       });
+      ligarLinks();
       m.querySelector('.fechar').onclick = () => this.fechar();
       fundo.onclick = (e) => { if (e.target === fundo) this.fechar(); };
       this._teclas = (e) => {
@@ -675,6 +824,7 @@
     { id: 'tela-emendas', hash: '#emendas', pagina: 'emendas.html', icone: 'dinheiro', rotulo: 'Emendas' },
     { id: 'tela-votacoes', hash: '#votacoes', pagina: 'votacoes.html', icone: 'plenario', rotulo: 'Votações' },
     { id: 'tela-coligacoes', hash: '#coligacoes', pagina: 'coligacoes.html', icone: 'rede', rotulo: 'Coligações', barraRotulo: 'Coliga&shy;ções' },
+    { id: 'tela-resultados', hash: '#resultados', pagina: 'resultados.html', icone: 'grafico', rotulo: 'Resultados', barraRotulo: 'Resul&shy;tados' },
     { id: 'tela-perfil', hash: '#perfil', pagina: 'meu-voto.html', icone: 'pessoa', rotulo: 'Perfil' },
     { id: 'tela-mais', hash: '#mais', pagina: 'meu-voto.html', icone: 'lista', rotulo: 'Mais', barra: false },
   ];
@@ -723,5 +873,6 @@
 
   window.App = { normMun, fmtCurto, emendasFoco, pctFundoPublico, norm, esc, titulo, el, fmtMoeda, fmtNum, icone, CARGOS_ORDEM, VAGAS, sitClasse, sitCurta, Dados, Store, Modal, Telas, TELAS, cardCandidato, tagsCandidato, fotoHtml, montarTopo, linkDivulga, linkPje, perfil, munFoco, setPerfil, temEmendasMun, concordancia, acharVotacao, disputouEm, fotoUrl, pctVotosEm,
     VOTO_ROT, votoTag, votoTagTexto, CASAS, fmtData, nomeMateria, linkMateria, ehVeto, LEGENDA_VETO, avisoPlacar,
-    agremiacao, ehProporcional, chaveSigla, PROPORCIONAIS };
+    agremiacao, ehProporcional, chaveSigla, PROPORCIONAIS,
+    Res, situacaoRes, explicarRes, agrNome, ordinal, pct };
 })();

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Resultados — Meu Voto 2026</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="data/manifest.js"></script>
+</head>
+<body>
+<main class="wrap" id="conteudo">
+  <section class="tela ativa" id="tela-resultados">
+    <div class="pagina-cab">
+      <div>
+        <h1>Resultados da eleição 2026</h1>
+        <p class="muted small">Votos de cada candidato, cidade por cidade, quem foi eleito e por quê. Dados oficiais da totalização do TSE.</p>
+      </div>
+    </div>
+
+    <div id="rs-status" role="status"></div>
+
+    <section class="card" aria-labelledby="rot-rs-filtros">
+      <h2 id="rot-rs-filtros" class="sr-only">Filtros</h2>
+      <div class="em-filtros">
+        <div class="campo"><label for="rs-uf">Estado</label><select id="rs-uf"></select></div>
+        <div class="campo"><label for="rs-cargo">Cargo</label><select id="rs-cargo"></select></div>
+      </div>
+    </section>
+
+    <section class="card rs-consulta" aria-labelledby="rot-rs-cand">
+      <h2 id="rot-rs-cand">Consultar um candidato</h2>
+      <p class="small muted">Quantos votos teve, em quais cidades e, se não foi eleito, por quê e quantos votos faltaram.</p>
+      <div class="campo"><label for="rs-texto">Nome de urna ou número</label><input type="search" id="rs-texto" placeholder="ex.: 4422 ou nome de urna" autocomplete="off"></div>
+      <div id="rs-cand" aria-live="polite"></div>
+    </section>
+
+    <div id="rs-conteudo"></div>
+
+    <section class="card" style="margin-top:24px" aria-labelledby="rot-rs-como">
+      <h2 id="rot-rs-como">Como funciona a apuração</h2>
+      <div class="detalhes small">
+        <div><b>Presidente e governador</b>Vence no 1º turno quem tiver mais da metade dos votos válidos (brancos e nulos não contam). Se ninguém tiver, os dois mais votados vão ao 2º turno, em 25/10/2026 (Constituição, art. 77; Lei 9.504/1997, art. 2º).</div>
+        <div><b>Senador</b>Em 2026 são duas vagas por estado. Vencem os dois mais votados, sem 2º turno.</div>
+        <div><b>Deputados: o voto vai primeiro para o partido</b>As vagas são divididas entre partidos e federações pelo total de votos de cada um (candidatos + legenda). Depois, cada vaga vai para o mais votado daquela lista. Por isso um candidato pode ter mais votos que um eleito e ficar de fora.</div>
+        <div><b>Quociente eleitoral (QE)</b>Votos válidos ÷ número de vagas (Código Eleitoral, art. 106).</div>
+        <div><b>Quociente partidário</b>Votos do partido ou federação ÷ QE, sem a fração: é o número de vagas que a lista ganha direto. Cada eleito por ele precisa de pelo menos 10% do QE (arts. 107 e 108).</div>
+        <div><b>Sobras (média)</b>As vagas que faltam vão, uma a uma, para a lista com a maior média (votos ÷ vagas já ganhas + 1). Na 2ª fase só participam listas com 80% do QE e candidatos com 20% do QE; na última, todos (art. 109; STF, ADIs 7228, 7263 e 7325).</div>
+        <div><b>Suplente</b>Quem não se elegeu numa lista que ganhou vagas fica como suplente, na ordem dos votos. Assume se um eleito da mesma lista deixar o cargo.</div>
+        <div><b>Anulado sub judice</b>Votos de candidato com registro ainda em julgamento. Não contam enquanto o processo não termina; se o registro for aprovado, o resultado é recalculado.</div>
+      </div>
+      <h3 class="cl-sub">Fontes oficiais</h3>
+      <div class="detalhes small" id="rs-fontes"></div>
+      <p class="small muted" id="rs-rodape"></p>
+    </section>
+  </section>
+</main>
+<script src="assets/app.js"></script>
+<script src="assets/resultados.js"></script>
+</body>
+</html>
