@@ -425,8 +425,8 @@ with sync_playwright() as p:
        "resultados: card do lider (Governador RO, 56,86%) e barras dos demais")
     cor = pg.eval_on_selector(".rs-lider .ponto-partido", "e => getComputedStyle(e).backgroundColor")
     ok(cor == "rgb(0, 92, 169)", "resultados: cor do PL no ponto do partido (%s)" % cor)
-    n_map = pg.locator(".rs-mapa path").count()
-    ok(n_map == 52 and pg.locator(".rs-mapa path[data-sq]").count() == 52, "resultados: mapa de RO com as 52 cidades pintadas (%d)" % n_map)
+    n_map = pg.locator(".rs-mapa-cidade path").count()
+    ok(n_map == 52 and pg.locator(".rs-mapa-cidade path[data-sq]").count() == 52 and pg.locator(".rs-mapa-estado path").count() == 27, "resultados: Governador RO com o mapa das 52 cidades pintadas e o mapa do Brasil (%d)" % n_map)
     pg.locator(".rs-mapa path[data-sq]").first.dispatch_event("click"); pg.wait_for_timeout(500)
     ok(pg.query_selector(".rs-cand") is not None, "resultados: clicar numa cidade do mapa abre o mais votado")
     pg.click(".rs-voltar")
@@ -440,10 +440,17 @@ with sync_playwright() as p:
        "resultados SP: lista 'mais votos que um eleito' e distribuicao das vagas")
     ok(pg.eval_on_selector("#rs-uf", "e => e.options[0].value") == "BR", "resultados: 'Brasil' e a 1a opcao do filtro Estado")
     pg.select_option("#rs-uf", "BR"); pg.wait_for_timeout(2500)
-    ok(pg.eval_on_selector("#rs-cargo", "e => [...e.options].map(o => o.value)") == ["Presidente"] and pg.query_selector(".rs-lider") is not None,
-       "resultados Brasil: so o cargo Presidente, com o card do 1o colocado")
+    ok(pg.eval_on_selector("#rs-cargo", "e => [...e.options].map(o => o.value)") == ["Presidente", "Governador", "Senador"] and pg.query_selector(".rs-lider") is not None,
+       "resultados Brasil: cargos Presidente, Governador e Senador, com o card do 1o colocado de presidente")
     n_uf = pg.locator(".rs-mapa-estado path[style]").count()
     ok(n_uf == 27 and pg.locator(".rs-mapa-cidade").count() == 0, "resultados Brasil: mapa com os 27 estados pintados e sem mapa de cidades (%d)" % n_uf)
+    for cargo in ("Governador", "Senador"):
+        pg.select_option("#rs-cargo", cargo); pg.wait_for_timeout(800)
+        ok(pg.locator(".rs-mapa-estado path[style]").count() == 27 and pg.locator("#rot-rs-estados ~ div table tbody tr").count() == 27 and "estado" in pg.inner_text(".rs-mapa-leg"),
+           "resultados Brasil: %s com mapa dos 27 estados, legenda por partido e tabela por estado" % cargo)
+    pg.locator(".rs-ir").first.click(); pg.wait_for_timeout(3500)
+    ok(pg.query_selector(".rs-cand") is not None and pg.eval_on_selector("#rs-uf", "e => e.value") != "BR", "resultados Brasil: nome na tabela de estados abre o candidato no estado dele")
+    pg.select_option("#rs-uf", "BR"); pg.wait_for_timeout(2500); pg.select_option("#rs-cargo", "Presidente"); pg.wait_for_timeout(800)
     pg.locator('.rs-mapa path[data-uf="RO"]').dispatch_event("click"); pg.wait_for_timeout(3000)
     ok(pg.eval_on_selector("#rs-uf", "e => e.value") == "RO" and pg.eval_on_selector("#rs-cargo", "e => e.value") == "Presidente" and pg.locator(".rs-mapa-cidade path").count() == 52,
        "resultados Brasil: clicar em RO no mapa abre o estado, mantem Presidente e mostra as 52 cidades")
