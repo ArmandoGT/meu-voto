@@ -52,7 +52,7 @@
   // ---------- filtros ----------
   function preencherFiltros() {
     const ufs = (Dados.manifest().ufs || []).filter((u) => u !== 'BR');
-    $('rs-uf').innerHTML = ufs.map((u) => `<option value="${u}">${u}</option>`).join('');
+    $('rs-uf').innerHTML = `<option value="BR">Brasil (todos os estados)</option>` + ufs.map((u) => `<option value="${u}">${u}</option>`).join('');
     $('rs-uf').value = st.uf;
     if (R === undefined) return;   // carregando outra UF: mantém o cargo escolhido
     const cargos = CARGOS_ORDEM.filter((c) => blocoDe(c));
@@ -361,33 +361,69 @@
     },
   };
 
-  function mapaCidades(b, top, muns, meu) {
-    const uf = R && R.meta.uf;
-    const M = uf && Mapa.cache[uf];
-    if (!M || Object.keys(M.m).length < 2) return '';   // DF: um município só, o mapa não diz nada
+  const NOMES_UF = { AC: 'Acre', AL: 'Alagoas', AM: 'Amazonas', AP: 'Amapá', BA: 'Bahia', CE: 'Ceará', DF: 'Distrito Federal', ES: 'Espírito Santo',
+    GO: 'Goiás', MA: 'Maranhão', MG: 'Minas Gerais', MS: 'Mato Grosso do Sul', MT: 'Mato Grosso', PA: 'Pará', PB: 'Paraíba', PE: 'Pernambuco', PI: 'Piauí',
+    PR: 'Paraná', RJ: 'Rio de Janeiro', RN: 'Rio Grande do Norte', RO: 'Rondônia', RR: 'Roraima', RS: 'Rio Grande do Sul', SC: 'Santa Catarina',
+    SE: 'Sergipe', SP: 'São Paulo', TO: 'Tocantins' };
+
+  // mapa genérico: cada área (cidade ou estado) pintada com a cor do partido do mais votado,
+  // mais forte quanto maior a fatia dele. celulas: código -> { sq, k, v, tot, nome }
+  function mapaHtml({ M, celulas, unidade, destaque, titulo: tit, rotulo, base, nota }) {
     const lideres = {};
+    const plural = unidade === 'estado' ? ['estado', 'estados'] : ['cidade', 'cidades'];
     const paths = Object.entries(M.m).map(([cd, d]) => {
-      const t = top[cd];
-      const k = t && t.sq && b.cand[t.sq];
-      const nome = cidade(cd, b.nome);
-      if (!k) return `<path d="${d}" class="sem"><title>${esc(nome)}: sem votos nos dados</title></path>`;
-      const p = t.tot ? t.v / t.tot : 0;
-      // quanto maior a fatia do mais votado na cidade, mais forte a cor
+      const c = celulas[cd];
+      const tem = c && c.k;
+      const attrs = unidade === 'estado' ? ` data-uf="${esc(cd)}"` : (tem ? ` data-sq="${esc(c.sq)}"` : '');
+      const cls = [cd === destaque ? 'meu' : '', tem ? '' : 'sem'].filter(Boolean).join(' ');
+      if (!tem) return `<path d="${d}"${attrs} class="${cls}"><title>${esc(c ? c.nome : cd)}: sem votos nos dados</title></path>`;
+      const p = c.tot ? c.v / c.tot : 0;
       const forca = Math.round(35 + 65 * Math.min(1, Math.max(0, (p - 0.15) / 0.55)));
-      (lideres[t.sq] = lideres[t.sq] || { k, n: 0 }).n++;
-      return `<path d="${d}" data-sq="${esc(t.sq)}" class="${cd === meu ? 'meu' : ''}" style="fill:color-mix(in srgb, ${corPartido(k.sg)} ${forca}%, var(--surface))"><title>${esc(nome)}: ${esc(nomeK(k))} (${esc(k.sg)}), ${fmtNum(t.v)} votos, ${pctTxt(t.v, t.tot)} dos nominais</title></path>`;
+      (lideres[c.sq] = lideres[c.sq] || { k: c.k, n: 0 }).n++;
+      return `<path d="${d}"${attrs} class="${cls}" style="fill:color-mix(in srgb, ${corPartido(c.k.sg)} ${forca}%, var(--surface))"><title>${esc(c.nome)}: ${esc(nomeK(c.k))} (${esc(c.k.sg)}), ${fmtNum(c.v)} votos, ${pctTxt(c.v, c.tot)} ${base}</title></path>`;
     }).join('');
     const leg = Object.entries(lideres).sort((a, c) => c[1].n - a[1].n);
-    return `<h3 class="cl-sub">Mapa: mais votado em cada cidade${b.cd === 1 ? ` (${esc(uf)})` : ''}</h3>
-      <div class="rs-mapa">
-        <svg viewBox="${M.vb}" role="img" aria-label="Mapa de ${esc(uf)} com o mais votado para ${esc(b.nome.toLowerCase())} em cada cidade. A mesma informação está na tabela abaixo.">${paths}</svg>
-        <ul class="rs-mapa-leg">${leg.map(([sq, x]) => `<li><button type="button" class="link-btn rs-abrir" data-sq="${esc(sq)}">${pontoPartido(x.k.sg)}${esc(nomeK(x.k))}</button> <span class="small muted">${esc(x.k.sg)} · ${x.n} ${x.n === 1 ? 'cidade' : 'cidades'}</span></li>`).join('')}</ul>
+    return `<h3 class="cl-sub">${tit}</h3>
+      <div class="rs-mapa rs-mapa-${unidade}">
+        <svg viewBox="${M.vb}" role="img" aria-label="${esc(rotulo)} A mesma informação está na tabela abaixo.">${paths}</svg>
+        <ul class="rs-mapa-leg">${leg.map(([sq, x]) => `<li><button type="button" class="link-btn rs-abrir" data-sq="${esc(sq)}">${pontoPartido(x.k.sg)}${esc(nomeK(x.k))}</button> <span class="small muted">${esc(x.k.sg)} · ${x.n} ${x.n === 1 ? plural[0] : plural[1]}</span></li>`).join('')}</ul>
       </div>
-      <p class="small muted">Cor do partido do mais votado; quanto mais forte, maior a fatia dele nos votos nominais da cidade. Passe o mouse ou toque numa cidade para ver os números; clique para abrir o candidato.${meu ? ' A cidade do seu perfil tem contorno destacado.' : ''} Contornos: malha municipal do IBGE.</p>`;
+      <p class="small muted">${nota}</p>`;
+  }
+
+  function mapaCidades(b, top, meu) {
+    const uf = R && R.meta.uf;
+    const M = uf && uf !== 'BR' && Mapa.cache[uf];
+    if (!M || Object.keys(M.m).length < 2) return '';   // DF: um município só, o mapa não diz nada
+    const celulas = {};
+    Object.keys(M.m).forEach((cd) => { const t = top[cd]; celulas[cd] = { sq: t && t.sq, k: t && t.sq && b.cand[t.sq], v: t ? t.v : 0, tot: t ? t.tot : 0, nome: cidade(cd, b.nome) }; });
+    return mapaHtml({ M, celulas, unidade: 'cidade', destaque: meu, base: 'dos nominais',
+      titulo: `Mapa: mais votado em cada cidade${b.cd === 1 ? ` (${esc(uf)})` : ''}`,
+      rotulo: `Mapa de ${uf} com o mais votado para ${b.nome.toLowerCase()} em cada cidade.`,
+      nota: `Cor do partido do mais votado; quanto mais forte, maior a fatia dele nos votos nominais da cidade. Passe o mouse ou toque numa cidade para ver os números; clique para abrir o candidato.${meu ? ' A cidade do seu perfil tem contorno destacado.' : ''} Contornos: malha municipal do IBGE.` });
+  }
+
+  // Presidente: o Brasil com cada estado pintado pelo mais votado; o clique leva ao estado
+  function mapaEstados(b) {
+    const M = Mapa.cache.BR;
+    if (!M || !b.porUf) return '';
+    const celulas = {};
+    Object.keys(M.m).forEach((u) => {
+      const d = b.porUf[u];
+      const mv = d && Object.entries(d.v).sort((a, c) => c[1] - a[1])[0];
+      celulas[u] = { sq: mv && mv[0], k: mv && b.cand[mv[0]], v: mv ? mv[1] : 0, tot: d ? d.tot.validos : 0, nome: NOMES_UF[u] || u };
+    });
+    const destaque = st.uf !== 'BR' ? st.uf : perfil().uf;
+    return mapaHtml({ M, celulas, unidade: 'estado', destaque, base: 'dos válidos',
+      titulo: 'Mapa: mais votado em cada estado',
+      rotulo: 'Mapa do Brasil com o mais votado para presidente em cada estado.',
+      nota: `Cor do partido do mais votado; quanto mais forte, maior a fatia dele nos votos válidos do estado. Clique num estado para ver o resultado de lá, cidade por cidade.${NOMES_UF[destaque] ? ` ${esc(NOMES_UF[destaque])} tem contorno destacado.` : ''} O voto no exterior está só na tabela. Contornos: malha do IBGE.` });
   }
 
   function renderCidades(alvo, b, Rm) {
     if (!alvo) return;
+    // Brasil inteiro: o TSE não traz comparecimento por cidade no arquivo do Brasil; o detalhe fica no estado
+    if (R === RB) { alvo.innerHTML = '<p class="small muted">Para ver o mapa e a tabela cidade por cidade, escolha um estado no filtro acima ou clique no estado no mapa do Brasil.</p>'; return; }
     const pres = b.cd === 1;
     const top = {};
     Object.entries(b.cand).forEach(([sq, k]) => (k.mun || []).forEach(([m, v]) => {
@@ -411,7 +447,7 @@
     linhas.sort(ords[st.ordCidades] || ords.abst);
     if (meu) { const i = linhas.findIndex((l) => l.m === meu); if (i > 0) linhas.unshift(linhas.splice(i, 1)[0]); }
     const vis = linhas.slice(0, st.limCidades);
-    alvo.innerHTML = mapaCidades(b, top, muns, meu) + `<h3 class="cl-sub">Cidade por cidade: participação e mais votado${pres ? ` (${esc(R ? R.meta.uf : '')})` : ''}</h3>
+    alvo.innerHTML = mapaCidades(b, top, meu) + `<h3 class="cl-sub">Cidade por cidade: participação e mais votado${pres ? ` (${esc(R ? R.meta.uf : '')})` : ''}</h3>
       <div class="linha rs-mun-ctl"><label class="small" for="rs-ord-cid">Ordenar por</label><select id="rs-ord-cid">
         <option value="abst">Maior abstenção</option><option value="absta">Menor abstenção</option><option value="el">Mais eleitores</option><option value="nome">Nome da cidade</option></select></div>
       <div style="overflow-x:auto"><table class="tabela"><thead><tr><th>Cidade</th><th class="r">Eleitores</th><th class="r">Compareceram</th><th class="r">Abstenção</th><th>Mais votado para ${esc(b.nome.toLowerCase())}</th><th class="r">Votos</th></tr></thead><tbody>
@@ -429,10 +465,10 @@
   function presPorUf(b) {
     if (b.cd !== 1 || !b.porUf) return '';
     const ordem = Object.entries(b.cand).sort((a, c) => c[1].v - a[1].v).slice(0, 2);
-    return sec('rs-uf', 'Presidente por estado', `<div style="overflow-x:auto"><table class="tabela"><thead><tr><th>UF</th><th class="r">Votos válidos</th>${ordem.map(([, k]) => `<th class="r">${esc(nomeK(k))}</th>`).join('')}<th>Mais votado</th></tr></thead><tbody>
+    return sec('rs-uf', 'Presidente por estado', `${mapaEstados(b)}<div style="overflow-x:auto"><table class="tabela"><thead><tr><th>UF</th><th class="r">Votos válidos</th>${ordem.map(([, k]) => `<th class="r">${esc(nomeK(k))}</th>`).join('')}<th>Mais votado</th></tr></thead><tbody>
       ${Object.entries(b.porUf).sort((a, c) => a[0].localeCompare(c[0])).map(([u, d]) => {
         const mv = Object.entries(d.v).sort((a, c) => c[1] - a[1])[0];
-        return `<tr class="${u === perfil().uf ? 'foco' : ''}"><td>${u === 'ZZ' ? 'Exterior' : u}</td><td class="r num">${fmtNum(d.tot.validos)}</td>${ordem.map(([sq]) => `<td class="r num">${pctTxt(d.v[sq] || 0, d.tot.validos)}</td>`).join('')}<td>${mv ? esc(nomeK(b.cand[mv[0]])) : ''}</td></tr>`;
+        return `<tr class="${u === (st.uf !== 'BR' ? st.uf : perfil().uf) ? 'foco' : ''}"><td>${u === 'ZZ' ? 'Exterior' : u}</td><td class="r num">${fmtNum(d.tot.validos)}</td>${ordem.map(([sq]) => `<td class="r num">${pctTxt(d.v[sq] || 0, d.tot.validos)}</td>`).join('')}<td>${mv ? esc(nomeK(b.cand[mv[0]])) : ''}</td></tr>`;
       }).join('')}</tbody></table></div>`);
   }
 
@@ -450,11 +486,12 @@
       box.innerHTML = `<div class="vazio" style="margin-top:16px">${R === undefined ? 'Carregando resultados…' : 'Resultados ainda não disponíveis para este estado. Rode <code>python scripts/fetch_resultados.py</code> e <code>python scripts/build_resultados.py</code>.'}</div>`;
       return;
     }
-    box.innerHTML = panorama(b, Rm) + corrida(b) + eleitos(b) + maisVotosNaoEleito(b) + distribuicao(b) + presPorUf(b) + estatisticas(b, Rm);
+    box.innerHTML = panorama(b, Rm) + corrida(b) + presPorUf(b) + eleitos(b) + maisVotosNaoEleito(b) + distribuicao(b) + estatisticas(b, Rm);
     renderCidades(box.querySelector('.rs-cidades'), b, Rm);
     ligarAbrir(box, st.cargo);
     const mr = box.querySelector('.rs-mais-rank'); if (mr) mr.onclick = () => { st.limRank += 100; render(); box.querySelector('#rot-rs-el').closest('section').querySelector('details').open = true; };
     const mm = box.querySelector('.rs-mais-mais'); if (mm) mm.onclick = () => { st.limMais += 100; render(); };
+    box.querySelectorAll('.rs-mapa path[data-uf]').forEach((pt) => { pt.onclick = () => { ufVer = pt.dataset.uf; st.sq = null; carregar().then(() => { const pan = $('rot-rs-pan'); if (pan) pan.scrollIntoView({ block: 'start' }); }); }; });
   }
 
   function renderFixos() {
@@ -480,12 +517,12 @@
 
   async function carregar() {
     st.uf = ufVer || perfil().uf;
-    if (st.uf === 'BR') st.uf = 'RO';
+    if (st.uf === 'BR' && !ufVer) st.uf = 'RO';   // perfil sem estado: começa em RO; "Brasil" só quando escolhido no filtro
     R = undefined;
     render();
     const ufs = [st.uf, 'BR'].filter((u) => (Dados.manifest().ufs || []).includes(u));
-    const [r, rb, lista] = await Promise.all([Res.carregar(st.uf), Res.carregar('BR'), Dados.carregarVarias(ufs), Mapa.carregar(st.uf)]);
-    R = r; RB = rb; cands = {};
+    const [r, rb, lista] = await Promise.all([Res.carregar(st.uf), Res.carregar('BR'), Dados.carregarVarias(ufs), Mapa.carregar(st.uf), Mapa.carregar('BR')]);
+    R = st.uf === 'BR' ? rb : r; RB = rb; cands = {};
     lista.forEach((c) => { cands[c.sq] = c; });
     if (st.sq && !CARGOS_ORDEM.some((c) => { const b = blocoDe(c); return b && b.cand[st.sq]; })) st.sq = null;
     renderFixos(); render();

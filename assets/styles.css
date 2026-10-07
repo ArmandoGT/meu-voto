@@ -539,7 +539,7 @@ details.painel-filtros[open] > summary .seta { transform: rotate(90deg); }
 .rs-aviso .ico { flex: none; margin-top: 2px; }
 .rs-consulta { margin-bottom: 16px; border-left: 4px solid var(--primary); }
 .rs-consulta h2, .rs-sec h2 { font-size: 1.1rem; margin: 0 0 8px; }
-.rs-sec { margin-top: 16px; overflow-wrap: anywhere; }
+.rs-sec { margin-top: 16px; overflow-wrap: anywhere; scroll-margin-top: calc(var(--header-h) + 12px); }
 .rs-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 12px 0; }
 .rs-kpis > div { background: var(--surface-2); border-radius: var(--radius); padding: 8px 10px; display: flex; flex-direction: column; min-width: 0; }
 .rs-kpis b { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-3); }
