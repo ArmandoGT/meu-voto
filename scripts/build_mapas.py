@@ -8,12 +8,14 @@ Fonte: API de malhas do IBGE (qualidade minima, ja simplificada)
 Os GeoJSON ficam em raw/malhas/<UF>.json (baixados uma vez; --baixar forca de novo).
 O codigo IBGE de cada municipio vira o codigo TSE pela tabela raw/municipio_tse_ibge.zip (o mesmo dos resultados).
 
+Com BR: malha do pais com as UFs (paises/BR?intrarregiao=UF) -> data/mapa_BR.js, chaves = sigla da UF.
+
 Saida: window.MAPA_XX = {"vb": "0 0 L A", "m": {"<codTSE>": "M..Z"}} - caminhos SVG ja projetados
 (equiretangular com correcao pelo cosseno da latitude media da UF), em coordenadas inteiras.
 Somente stdlib.
 
 Uso:
-    python scripts/build_mapas.py               # todas as UFs
+    python scripts/build_mapas.py               # todas as UFs + o mapa do Brasil (BR)
     python scripts/build_mapas.py --ufs RO,AC
 """
 import argparse
@@ -32,6 +34,7 @@ RAW = os.path.join(ROOT, "raw", "malhas")
 DATA = os.path.join(ROOT, "data")
 UFS = "AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO".split()
 URL = "https://servicodados.ibge.gov.br/api/v3/malhas/estados/%s?intrarregiao=municipio&qualidade=minima&formato=application/vnd.geo+json"
+URL_BR = "https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?intrarregiao=UF&qualidade=minima&formato=application/vnd.geo+json"
 LARGURA = 1000  # largura do viewBox; a altura segue a proporcao da UF
 
 
@@ -40,7 +43,7 @@ def baixar(uf, forcar):
     p = os.path.join(RAW, uf + ".json")
     if os.path.exists(p) and not forcar:
         return p
-    req = urllib.request.Request(URL % uf, headers={"User-Agent": "meu-voto-2026 (uso pessoal)", "Accept": "application/json"})
+    req = urllib.request.Request(URL_BR if uf == "BR" else URL % uf, headers={"User-Agent": "meu-voto-2026 (uso pessoal)", "Accept": "application/json"})
     for tentativa in range(4):
         try:
             with urllib.request.urlopen(req, timeout=60) as r:
@@ -59,12 +62,15 @@ def baixar(uf, forcar):
 
 
 def tabela_ibge_tse():
+    """codigo IBGE -> codigo TSE dos municipios, e codigo IBGE da UF -> sigla (para o mapa do Brasil)."""
     z = zipfile.ZipFile(os.path.join(ROOT, "raw", "municipio_tse_ibge.zip"))
-    t = {}
+    t, ufs = {}, {}
     for r in csv.DictReader(io.TextIOWrapper(z.open("municipio_tse_ibge.csv"), encoding="latin-1"), delimiter=";"):
         if r["CD_MUNICIPIO_IBGE"]:
             t[r["CD_MUNICIPIO_IBGE"].strip()] = r["CD_MUNICIPIO_TSE"].strip().zfill(5)
-    return t
+        if r["CD_UF_IBGE"]:
+            ufs[r["CD_UF_IBGE"].strip()] = r["SG_UF"].strip()
+    return t, ufs
 
 
 def aneis(geom):
@@ -116,16 +122,16 @@ def gerar(uf, p, ibge_tse):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ufs", default=",".join(UFS))
+    ap.add_argument("--ufs", default=",".join(UFS + ["BR"]), help="BR = mapa do Brasil com os estados")
     ap.add_argument("--baixar", action="store_true", help="baixa de novo mesmo se ja existir em raw/malhas")
     args = ap.parse_args()
-    ibge_tse = tabela_ibge_tse()
+    ibge_tse, ibge_uf = tabela_ibge_tse()
     total = 0
     for uf in [u.strip().upper() for u in args.ufs.split(",") if u.strip()]:
         p = baixar(uf, args.baixar)
         if not p:
             continue
-        mapa = gerar(uf, p, ibge_tse)
+        mapa = gerar(uf, p, ibge_uf if uf == "BR" else ibge_tse)
         if not mapa:
             print("  %s: malha vazia" % uf)
             continue
@@ -135,7 +141,7 @@ def main():
             json.dump(mapa, f, separators=(",", ":"))
             f.write(";\n")
         total += os.path.getsize(out)
-        print("  %s: %d municipios, %.0f KB" % (uf, len(mapa["m"]), os.path.getsize(out) / 1024))
+        print("  %s: %d %s, %.0f KB" % (uf, len(mapa["m"]), "estados" if uf == "BR" else "municipios", os.path.getsize(out) / 1024))
     print("OK - data/mapa_XX.js (%.0f KB no total)" % (total / 1024))
 
 
