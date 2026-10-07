@@ -26,6 +26,7 @@
   let R = null, RB = null, cands = {}, ufVer = null;
 
   const PROP = (b) => b && [6, 7, 8].includes(b.cd);
+  const estadosDe = (cargo) => RB && RB.estados && RB.estados[cargo];   // Governador/Senador: resumo por UF (resultados_BR.js)
   const blocoDe = (cargo) => cargo === 'Presidente' ? RB && RB.cargos.Presidente : R && R.cargos[cargo];
   const resDe = (cargo) => cargo === 'Presidente' ? RB : R;
   const nomeK = (k) => titulo(k.nome);
@@ -55,7 +56,7 @@
     $('rs-uf').innerHTML = `<option value="BR">Brasil (todos os estados)</option>` + ufs.map((u) => `<option value="${u}">${u}</option>`).join('');
     $('rs-uf').value = st.uf;
     if (R === undefined) return;   // carregando outra UF: mantém o cargo escolhido
-    const cargos = CARGOS_ORDEM.filter((c) => blocoDe(c));
+    const cargos = CARGOS_ORDEM.filter((c) => blocoDe(c) || (R === RB && estadosDe(c)));
     if (!cargos.includes(st.cargo)) st.cargo = cargos.includes('Deputado Federal') ? 'Deputado Federal' : cargos[0] || '';
     $('rs-cargo').innerHTML = cargos.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
     $('rs-cargo').value = st.cargo;
@@ -368,7 +369,7 @@
 
   // mapa genérico: cada área (cidade ou estado) pintada com a cor do partido do mais votado,
   // mais forte quanto maior a fatia dele. celulas: código -> { sq, k, v, tot, nome }
-  function mapaHtml({ M, celulas, unidade, destaque, titulo: tit, rotulo, base, nota }) {
+  function mapaHtml({ M, celulas, unidade, destaque, titulo: tit, rotulo, base, nota, legendaPor = 'candidato' }) {
     const lideres = {};
     const plural = unidade === 'estado' ? ['estado', 'estados'] : ['cidade', 'cidades'];
     const paths = Object.entries(M.m).map(([cd, d]) => {
@@ -379,14 +380,17 @@
       if (!tem) return `<path d="${d}"${attrs} class="${cls}"><title>${esc(c ? c.nome : cd)}: sem votos nos dados</title></path>`;
       const p = c.tot ? c.v / c.tot : 0;
       const forca = Math.round(35 + 65 * Math.min(1, Math.max(0, (p - 0.15) / 0.55)));
-      (lideres[c.sq] = lideres[c.sq] || { k: c.k, n: 0 }).n++;
+      const chave = legendaPor === 'partido' ? c.k.sg : c.sq;
+      (lideres[chave] = lideres[chave] || { k: c.k, n: 0 }).n++;
       return `<path d="${d}"${attrs} class="${cls}" style="fill:color-mix(in srgb, ${corPartido(c.k.sg)} ${forca}%, var(--surface))"><title>${esc(c.nome)}: ${esc(nomeK(c.k))} (${esc(c.k.sg)}), ${fmtNum(c.v)} votos, ${pctTxt(c.v, c.tot)} ${base}</title></path>`;
     }).join('');
     const leg = Object.entries(lideres).sort((a, c) => c[1].n - a[1].n);
     return `<h3 class="cl-sub">${tit}</h3>
       <div class="rs-mapa rs-mapa-${unidade}">
         <svg viewBox="${M.vb}" role="img" aria-label="${esc(rotulo)} A mesma informação está na tabela abaixo.">${paths}</svg>
-        <ul class="rs-mapa-leg">${leg.map(([sq, x]) => `<li><button type="button" class="link-btn rs-abrir" data-sq="${esc(sq)}">${pontoPartido(x.k.sg)}${esc(nomeK(x.k))}</button> <span class="small muted">${esc(x.k.sg)} · ${x.n} ${x.n === 1 ? plural[0] : plural[1]}</span></li>`).join('')}</ul>
+        <ul class="rs-mapa-leg">${leg.map(([ch, x]) => legendaPor === 'partido'
+          ? `<li>${pontoPartido(x.k.sg)}<b>${esc(x.k.sg)}</b> <span class="small muted">· ${x.n} ${x.n === 1 ? plural[0] : plural[1]}</span></li>`
+          : `<li><button type="button" class="link-btn rs-abrir" data-sq="${esc(ch)}">${pontoPartido(x.k.sg)}${esc(nomeK(x.k))}</button> <span class="small muted">${esc(x.k.sg)} · ${x.n} ${x.n === 1 ? plural[0] : plural[1]}</span></li>`).join('')}</ul>
       </div>
       <p class="small muted">${nota}</p>`;
   }
@@ -462,6 +466,34 @@
     alvo.querySelectorAll('.rs-mapa path[data-sq]').forEach((pt) => { pt.onclick = () => { $('rs-texto').value = ''; st.texto = ''; abrir(pt.dataset.sq, b.nome); }; });
   }
 
+  // Governador e Senador no Brasil: o mais votado de cada estado (resumo de resultados_BR.js); clique leva ao estado
+  function cargoNosEstados(cargo) {
+    const E = estadosDe(cargo);
+    if (!E) return '';
+    const M = Mapa.cache.BR;
+    const sen = cargo === 'Senador';
+    const destaque = st.uf !== 'BR' ? st.uf : perfil().uf;
+    let mapa = '';
+    if (M) {
+      const celulas = {};
+      Object.keys(M.m).forEach((u) => { const e = E[u]; const k = e && e.c[0]; celulas[u] = { sq: k && k.sq, k, v: k ? k.v : 0, tot: e ? e.base : 0, nome: NOMES_UF[u] || u }; });
+      mapa = mapaHtml({ M, celulas, unidade: 'estado', destaque, base: 'dos válidos', legendaPor: 'partido',
+        titulo: `Mapa: ${sen ? 'mais votado para senador' : '1º colocado para governador'} em cada estado`,
+        rotulo: `Mapa do Brasil com o ${sen ? 'mais votado para senador' : '1º colocado para governador'} em cada estado, pela cor do partido.`,
+        nota: `Cor do partido do ${sen ? 'mais votado (cada estado elegeu dois senadores; os dois estão na tabela)' : '1º colocado'}; quanto mais forte, maior a fatia dele nos votos válidos. Clique num estado para ver o resultado de lá.${NOMES_UF[destaque] ? ` ${esc(NOMES_UF[destaque])} tem contorno destacado.` : ''} Contornos: malha do IBGE.` });
+    }
+    const quem = (u, k) => k ? `<button type="button" class="link-btn rs-ir" data-sq="${esc(k.sq)}" data-uf="${esc(u)}">${esc(nomeK(k))}</button> <span class="small muted">${pontoPartido(k.sg)}${esc(k.sg)}</span>` : '—';
+    const linhas = Object.keys(E).sort((a, c) => (NOMES_UF[a] || a).localeCompare(NOMES_UF[c] || c, 'pt-BR')).map((u) => {
+      const e = E[u]; const [k1, k2] = e.c;
+      const seg = k2 && (sen || situacaoRes(k2).cls === 'warn');   // senador: os 2 eleitos; governador: o 2º só se houver 2º turno
+      return `<tr class="${u === destaque ? 'foco' : ''}"><td>${esc(NOMES_UF[u] || u)}</td><td>${quem(u, k1)}</td><td class="r num">${pctTxt(k1.v, e.base)}</td><td>${tagSit(k1)}</td>
+        <td>${seg ? quem(u, k2) : ''}</td><td class="r num">${seg ? pctTxt(k2.v, e.base) : ''}</td><td>${seg ? tagSit(k2) : ''}</td></tr>`;
+    }).join('');
+    return sec('rs-estados', `${cargo} nos estados`, `${mapa}
+      <div style="overflow-x:auto"><table class="tabela"><thead><tr><th>Estado</th><th>${sen ? 'Mais votado' : '1º colocado'}</th><th class="r">% válidos</th><th>Situação</th><th>${sen ? '2º mais votado' : '2º colocado (se houver 2º turno)'}</th><th class="r">% válidos</th><th>Situação</th></tr></thead><tbody>${linhas}</tbody></table></div>
+      ${sen ? '<p class="small muted">Para senador cada eleitor deu dois votos; o % é sobre o total de votos válidos para o cargo no estado.</p>' : ''}`);
+  }
+
   function presPorUf(b) {
     if (b.cd !== 1 || !b.porUf) return '';
     const ordem = Object.entries(b.cand).sort((a, c) => c[1].v - a[1].v).slice(0, 2);
@@ -470,6 +502,12 @@
         const mv = Object.entries(d.v).sort((a, c) => c[1] - a[1])[0];
         return `<tr class="${u === (st.uf !== 'BR' ? st.uf : perfil().uf) ? 'foco' : ''}"><td>${u === 'ZZ' ? 'Exterior' : u}</td><td class="r num">${fmtNum(d.tot.validos)}</td>${ordem.map(([sq]) => `<td class="r num">${pctTxt(d.v[sq] || 0, d.tot.validos)}</td>`).join('')}<td>${mv ? esc(nomeK(b.cand[mv[0]])) : ''}</td></tr>`;
       }).join('')}</tbody></table></div>`);
+  }
+
+  // mapa do Brasil: clique num estado abre o estado (mesmo cargo); nome na tabela de estados abre o candidato lá
+  function ligarEstados(raiz) {
+    raiz.querySelectorAll('.rs-mapa path[data-uf]').forEach((pt) => { pt.onclick = () => { ufVer = pt.dataset.uf; st.sq = null; carregar().then(() => { const pan = $('rot-rs-pan'); if (pan) pan.scrollIntoView({ block: 'start' }); }); }; });
+    raiz.querySelectorAll('.rs-ir').forEach((bt) => { bt.onclick = () => irPara(bt.dataset.sq, bt.dataset.uf); });
   }
 
   function ligarAbrir(raiz, cargo) {
@@ -482,16 +520,21 @@
     const box = $('rs-conteudo');
     const b = blocoDe(st.cargo);
     const Rm = resDe(st.cargo);
+    if (!b && R === RB && estadosDe(st.cargo)) {
+      box.innerHTML = cargoNosEstados(st.cargo) + `<p class="small muted" style="margin-top:12px">Escolha um estado no filtro acima, ou clique nele no mapa, para ver o panorama, todos os candidatos e o resultado cidade por cidade.</p>`;
+      ligarEstados(box);
+      return;
+    }
     if (!b) {
       box.innerHTML = `<div class="vazio" style="margin-top:16px">${R === undefined ? 'Carregando resultados…' : 'Resultados ainda não disponíveis para este estado. Rode <code>python scripts/fetch_resultados.py</code> e <code>python scripts/build_resultados.py</code>.'}</div>`;
       return;
     }
-    box.innerHTML = panorama(b, Rm) + corrida(b) + presPorUf(b) + eleitos(b) + maisVotosNaoEleito(b) + distribuicao(b) + estatisticas(b, Rm);
+    box.innerHTML = panorama(b, Rm) + corrida(b) + presPorUf(b) + (b.cd === 3 || b.cd === 5 ? cargoNosEstados(st.cargo) : '') + eleitos(b) + maisVotosNaoEleito(b) + distribuicao(b) + estatisticas(b, Rm);
     renderCidades(box.querySelector('.rs-cidades'), b, Rm);
     ligarAbrir(box, st.cargo);
     const mr = box.querySelector('.rs-mais-rank'); if (mr) mr.onclick = () => { st.limRank += 100; render(); box.querySelector('#rot-rs-el').closest('section').querySelector('details').open = true; };
     const mm = box.querySelector('.rs-mais-mais'); if (mm) mm.onclick = () => { st.limMais += 100; render(); };
-    box.querySelectorAll('.rs-mapa path[data-uf]').forEach((pt) => { pt.onclick = () => { ufVer = pt.dataset.uf; st.sq = null; carregar().then(() => { const pan = $('rot-rs-pan'); if (pan) pan.scrollIntoView({ block: 'start' }); }); }; });
+    ligarEstados(box);
   }
 
   function renderFixos() {
