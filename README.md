@@ -48,8 +48,10 @@ apenas Rondônia.
   reais (quociente eleitoral, quociente partidário, sobras) e estatísticas (participação por cidade, mais
   votado em cada cidade, perfil dos eleitos, gasto declarado por voto). Para presidente, governador e senador,
   o 1º colocado aparece em destaque e os demais em barras. Um **mapa do estado** mostra o mais votado em cada
-  município, com a cor do partido. Para presidente, a opção **Brasil** no filtro de estado mostra o **mapa do
-  Brasil** com o mais votado em cada estado; clicar num estado abre o resultado de lá, cidade por cidade.
+  município, com a cor do partido. A opção **Brasil** no filtro de estado mostra o **mapa do Brasil**: para
+  presidente, o mais votado em cada estado; para governador e senador, o 1º colocado de cada estado pela cor do
+  partido, com uma tabela dos eleitos e de quem vai ao 2º turno. Clicar num estado abre o resultado de lá, cidade
+  por cidade.
 - **Tema claro ou escuro**: botão de sol/lua no topo de todas as telas. A escolha fica salva; em Mais dá para
   voltar ao automático, que segue o sistema. As cores seguem a paleta da divulgação de resultados do TSE
   (verde-petróleo e dourado).
@@ -93,8 +95,8 @@ apenas Rondônia.
 | **Resultados** — votos de cada candidato cidade por cidade, situação e por que não foi eleito. | **Resultados** — o cálculo das vagas com os números reais do TSE. |
 | ![Resultados: governador de RO, 1º colocado em destaque e demais em barras](docs/img/resultados-corrida.png) | ![Resultados: mapa de RO com o mais votado em cada município, tema escuro](docs/img/resultados-mapa.png) |
 | **Resultados** — cargos majoritários: 1º colocado em destaque e barras na cor do partido (tema claro). | **Resultados** — mapa do mais votado em cada cidade; clique abre o candidato (tema escuro). |
-| ![Resultados: mapa do Brasil com o mais votado para presidente em cada estado](docs/img/resultados-brasil.png) | |
-| **Resultados** — presidente no Brasil inteiro: mapa por estado; clique leva ao estado. | |
+| ![Resultados: mapa do Brasil com o mais votado para presidente em cada estado](docs/img/resultados-brasil.png) | ![Resultados: mapa do Brasil com o partido do 1º colocado para governador em cada estado](docs/img/resultados-governadores.png) |
+| **Resultados** — presidente no Brasil inteiro: mapa por estado; clique leva ao estado. | **Resultados** — governador (e senador) nos 27 estados, pela cor do partido do 1º colocado. |
 
 Imagens geradas com os dados oficiais de outubro de 2026 (resultados do 1º turno) e o Perfil em Ariquemes/RO,
 no tema claro (o mapa, no escuro). Quando um candidato aparece sozinho em destaque (Emendas, Colinha, celular,
@@ -309,6 +311,8 @@ python scripts/fetch_resultados.py --turno 2  # depois de 25/10 (2º turno)
   for idêntico ao do TSE** (quociente, vagas de cada lista e eleitos). As explicações e o "quantos votos
   faltaram" só são gerados sobre esse cálculo conferido. Cargo que o TSE ainda não proclamou (ex.: "Aguarde
   reprocessamento da eleição") aparece como **projeção**, com aviso.
+- **Governador e senador no Brasil**: `build_resultados.py` guarda em `resultados_BR.js` um resumo por estado (os
+  3 mais votados, a base de votos válidos e a situação), para o mapa do Brasil não precisar carregar os 27 arquivos.
 - **Mapa**: `build_mapas.py` baixa a malha municipal do IBGE (e a malha do país com os estados, para o mapa do Brasil) (API de malhas, qualidade mínima) uma vez para
   `raw/malhas/`, converte cada município para o código do TSE (tabela `municipio_tse_ibge`) e grava caminhos SVG
   já projetados. Cada cidade é pintada com a cor do partido do mais votado: quanto mais forte a cor, maior a fatia
@@ -360,7 +364,7 @@ python scripts\testes\rodar_testes.py --cruzado  # tudo + auditoria cruzada com 
 - `teste_ui.py` — abre o sistema no Edge (sem janela): pesquisa, todas as abas e critérios, **todas as fichas
   de RO e presidente**, tela Emendas em todos os municípios e filtros, tela Coligações (deputado federado,
   governador, senador e grupos de cada cargo), tela Resultados (consulta de candidato, ordem das cidades,
-  explicações, troca de estado, link da ficha, card do 1º colocado, mapa e clique no mapa, opção Brasil com o mapa dos estados e clique que abre o estado), **tema claro/escuro**
+  explicações, troca de estado, link da ficha, card do 1º colocado, mapa e clique no mapa, opção Brasil com o mapa dos estados para presidente, governador e senador e clique que abre o estado), **tema claro/escuro**
   (botão, escolha salva entre as páginas, volta ao automático em Mais, partindo do sistema em claro e em escuro), versão celular, funcionamento sem os
   dados opcionais, **impressão da colinha em PDF A4** (salvo em `scripts/testes/saida/colinha.pdf`) e
   **celulares emulados** (Pixel 7, iPhone 13, Galaxy S9+, iPhone SE: toque, fonte mínima, alvos de toque,
@@ -369,7 +373,7 @@ python scripts\testes\rodar_testes.py --cruzado  # tudo + auditoria cruzada com 
   gerados contra as APIs oficiais (SAPL da ALE-RO, Câmara, Senado) e o TSE, e compara os cálculos feitos no
   navegador com os feitos em Python. Relatório em `scripts/testes/saida/auditoria_cruzada.md`.
 
-Última rodada (06/10/2026, com os resultados do 1º turno): dados 116 OK e interface 238 OK, sem falhas. Os
+Última rodada (06/10/2026, com os resultados do 1º turno): dados 116 OK e interface 241 OK, sem falhas. Os
 avisos foram só de atualidade (PE ainda sem proclamação do TSE; base de candidatos e emendas de alguns dias atrás).
 Última auditoria cruzada (24/09/2026): 32 verificações OK, nenhuma falha e 1 alerta que vem da própria fonte
 (placar de um veto de 2017 no SAPL).
