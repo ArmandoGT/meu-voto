@@ -93,8 +93,9 @@ apenas Rondônia.
 | ![Resultados: governador de RO, 1º colocado em destaque e demais em barras](docs/img/resultados-corrida.png) | ![Resultados: mapa de RO com o mais votado em cada município, tema escuro](docs/img/resultados-mapa.png) |
 | **Resultados** — cargos majoritários: 1º colocado em destaque e barras na cor do partido (tema claro). | **Resultados** — mapa do mais votado em cada cidade; clique abre o candidato (tema escuro). |
 
-Imagens geradas com os dados oficiais de setembro de 2026 e o Perfil em Ariquemes/RO. Na Emendas e na
-Colinha, nomes, fotos e números de candidatos foram borrados de propósito: as capturas ilustram o
+Imagens geradas com os dados oficiais de outubro de 2026 (resultados do 1º turno) e o Perfil em Ariquemes/RO,
+no tema claro (o mapa, no escuro). Quando um candidato aparece sozinho em destaque (Emendas, Colinha, celular,
+consulta e 1º colocado nos Resultados), nome, foto e número foram borrados de propósito: as capturas ilustram o
 funcionamento do sistema e não indicam voto em ninguém.
 
 ## Início rápido
