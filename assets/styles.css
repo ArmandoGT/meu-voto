@@ -567,3 +567,32 @@ details.painel-filtros[open] > summary .seta { transform: rotate(90deg); }
   .rs-cand-cab .foto.grande { width: 72px; height: 96px; }
 }
 #rs-cand { scroll-margin-top: calc(var(--header-h) + 12px); }
+
+/* ---------- Resultados: cor do partido, corrida (majoritários) e mapa ---------- */
+.ponto-partido { display: inline-block; width: .7em; height: .7em; border-radius: 50%; margin-right: 6px; vertical-align: .02em; box-shadow: 0 0 0 1px var(--border); flex: none; }
+.rs-lider { display: flex; gap: 14px; align-items: center; padding: 12px; margin: 8px 0 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: linear-gradient(150deg, var(--primary-soft), var(--surface) 70%); }
+.rs-lider .cresce { min-width: 0; }
+.rs-lider-nome { font-size: 1.15rem; }
+.rs-lider-pct { font-size: 2.4rem; font-weight: 750; color: var(--accent); line-height: 1; white-space: nowrap; }
+.rs-barras { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.rs-barra-linha { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; padding: 6px 4px; background: none; border: 0; border-radius: var(--radius); text-align: left; cursor: pointer; color: var(--text); font: inherit; }
+.rs-barra-linha:hover { background: var(--surface-2); }
+.rs-barra-nome { min-width: 0; overflow-wrap: anywhere; }
+.rs-barra-nome .numero { font-family: var(--mono); font-weight: 700; background: var(--surface-2); border-radius: 6px; padding: 0 6px; }
+.rs-barra-pct { font-weight: 700; }
+.rs-barra { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
+.rs-barra > span { display: block; height: 100%; border-radius: 3px; transition: width .5s; }
+.rs-mapa { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; margin: 8px 0; }
+.rs-mapa svg { width: 100%; height: auto; max-height: 560px; display: block; }
+.rs-mapa path { stroke: var(--surface); stroke-width: 1.2; stroke-linejoin: round; cursor: pointer; transition: opacity .15s; }
+.rs-mapa path.sem { fill: var(--surface-3); cursor: default; }
+.rs-mapa path:hover { opacity: .8; stroke: var(--text); stroke-width: 2; }
+.rs-mapa path.meu { stroke: var(--text); stroke-width: 3.5; }
+.rs-mapa-leg { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: .92rem; }
+@media (max-width: 760px) {
+  .rs-mapa { grid-template-columns: 1fr; }
+  .rs-lider { flex-wrap: wrap; gap: 10px 12px; }
+  .rs-lider .foto.grande { width: 72px; height: 96px; }
+  .rs-lider .cresce { flex: 1 1 160px; }
+  .rs-lider-pct { flex-basis: 100%; font-size: 1.9rem; }
+}

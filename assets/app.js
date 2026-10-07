@@ -853,6 +853,24 @@
     },
   };
 
+  // ---------- cor por partido (só identificação visual; sempre com a sigla escrita ao lado) ----------
+  // Base: lib/candidate-colors.ts do apurador eleicoes.3ree.org (MIT), convertida para siglas; demais pelas cores dos partidos.
+  const CORES_PARTIDO = {
+    PL: '#005CA9', PT: '#CC092F', NOVO: '#EC671C', PSD: '#243E78', AVANTE: '#1559A2', MISSAO: '#F4C300', UP: '#7A278B',
+    PSTU: '#E1251B', DC: '#008F5A', PCB: '#B5121B', PCO: '#D71920', MDB: '#2E8B3C', UNIAO: '#1C3F94', PP: '#2A63B0',
+    REPUBLICANOS: '#0B6E4F', PSB: '#E8B300', PSDB: '#0A4DA2', PDT: '#E3262E', PSOL: '#FFC20E', PODE: '#2DA84E',
+    PCDOB: '#A50F15', PV: '#00A651', REDE: '#00B2A9', SOLIDARIEDADE: '#F26522', CIDADANIA: '#EC008C', PRD: '#1B3A6B',
+    AGIR: '#3B5BA9', PMB: '#B5338A', MOBILIZA: '#E86A10', PRTB: '#0E7C3A',
+  };
+  const CORES_RESERVA = ['#16756A', '#7B4FA3', '#B06B15', '#3479A8', '#A53A68', '#66752B'];
+  function corPartido(sigla) {
+    const k = norm(sigla).toUpperCase().replace(/[^A-Z]/g, '');
+    if (CORES_PARTIDO[k]) return CORES_PARTIDO[k];
+    let h = 0; for (const ch of k) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return CORES_RESERVA[h % CORES_RESERVA.length];
+  }
+  const pontoPartido = (sigla) => `<span class="ponto-partido" style="background:${corPartido(sigla)}" aria-hidden="true"></span>`;
+
   // ---------- tema claro/escuro ----------
   // Sem escolha salva, segue o sistema (prefers-color-scheme). A escolha fica numa chave própria,
   // fora do Store: "Limpar" e Exportar não mexem nela. O <head> de cada página aplica antes de pintar.
@@ -909,7 +927,7 @@
     Tema.iniciar();
   }
 
-  window.App = { normMun, fmtCurto, emendasFoco, pctFundoPublico, norm, esc, titulo, el, fmtMoeda, fmtNum, icone, CARGOS_ORDEM, VAGAS, sitClasse, sitCurta, Dados, Store, Modal, Telas, TELAS, cardCandidato, tagsCandidato, fotoHtml, montarTopo, Tema, linkDivulga, linkPje, perfil, munFoco, setPerfil, temEmendasMun, concordancia, acharVotacao, disputouEm, fotoUrl, pctVotosEm,
+  window.App = { normMun, fmtCurto, emendasFoco, pctFundoPublico, norm, esc, titulo, el, fmtMoeda, fmtNum, icone, CARGOS_ORDEM, VAGAS, sitClasse, sitCurta, Dados, Store, Modal, Telas, TELAS, cardCandidato, tagsCandidato, fotoHtml, montarTopo, Tema, corPartido, pontoPartido, linkDivulga, linkPje, perfil, munFoco, setPerfil, temEmendasMun, concordancia, acharVotacao, disputouEm, fotoUrl, pctVotosEm,
     VOTO_ROT, votoTag, votoTagTexto, CASAS, fmtData, nomeMateria, linkMateria, ehVeto, LEGENDA_VETO, avisoPlacar,
     agremiacao, ehProporcional, chaveSigla, PROPORCIONAIS,
     Res, situacaoRes, explicarRes, agrNome, ordinal, pct };
