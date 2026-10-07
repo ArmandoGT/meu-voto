@@ -51,6 +51,8 @@
     dinheiro: '<rect x="3" y="6" width="18" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 9v.01M17.5 15v.01"/>',
     plenario: '<path d="M3 6h9M3 12h9M3 18h9"/><path d="m15 11 2.5 2.5L22 9"/>',
     grafico: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    sol: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    lua: '<path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/>',
     rede: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.3 10.9l7.4-3.7M8.3 13.1l7.4 3.7"/>',
   };
   const icone = (nome, cheio = false) => `<svg class="ico${cheio ? ' cheio' : ''}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONES[nome] || ''}</svg>`;
@@ -851,6 +853,39 @@
     },
   };
 
+  // ---------- tema claro/escuro ----------
+  // Sem escolha salva, segue o sistema (prefers-color-scheme). A escolha fica numa chave própria,
+  // fora do Store: "Limpar" e Exportar não mexem nela. O <head> de cada página aplica antes de pintar.
+  const Tema = {
+    CHAVE: 'meuvoto2026-tema',
+    escolha() { try { const t = localStorage.getItem(this.CHAVE); return t === 'light' || t === 'dark' ? t : 'auto'; } catch (e) { return 'auto'; } },
+    efetivo() { const d = document.documentElement.dataset.theme; if (d === 'light' || d === 'dark') return d; return window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; },
+    definir(t) {
+      try { if (t === 'auto') localStorage.removeItem(this.CHAVE); else localStorage.setItem(this.CHAVE, t); } catch (e) { /* sem armazenamento: vale só nesta visita */ }
+      if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+      this.atualizar();
+    },
+    alternar() { this.definir(this.efetivo() === 'dark' ? 'light' : 'dark'); },
+    atualizar() {
+      const escuro = this.efetivo() === 'dark';
+      document.querySelectorAll('.tema-btn').forEach((b) => {
+        b.innerHTML = icone(escuro ? 'sol' : 'lua');
+        const rot = escuro ? 'Usar tema claro' : 'Usar tema escuro';
+        b.setAttribute('aria-label', rot); b.title = rot; b.setAttribute('aria-pressed', escuro ? 'true' : 'false');
+      });
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.content = escuro ? '#151e1d' : '#154d47';
+      document.querySelectorAll('input[name="tema"]').forEach((r) => { r.checked = r.value === this.escolha(); });
+      document.dispatchEvent(new CustomEvent('tema:mudou', { detail: { tema: this.efetivo() } }));
+    },
+    iniciar() {
+      if (this._ok) return; this._ok = true;
+      if (window.matchMedia) { const mq = matchMedia('(prefers-color-scheme: dark)'); const f = () => { if (this.escolha() === 'auto') this.atualizar(); }; if (mq.addEventListener) mq.addEventListener('change', f); else if (mq.addListener) mq.addListener(f); }
+      document.querySelectorAll('input[name="tema"]').forEach((r) => { r.onchange = () => { if (r.checked) this.definir(r.value); }; });
+      this.atualizar();
+    },
+  };
+
   // ---------- cabeçalho comum ----------
   function montarTopo() {
     if (document.querySelector('.topbar')) return;
@@ -860,7 +895,9 @@
       <header class="topbar"><div class="inner">
         <a class="brand" href="index.html"><span class="marca" aria-hidden="true">MV</span><span class="texto">Meu Voto 2026</span></a>
         <nav class="nav" aria-label="Páginas">${links}</nav>
+        <button type="button" class="tema-btn"></button>
       </div></header>`);
+    t.querySelector('.tema-btn').onclick = () => Tema.alternar();
     t.querySelectorAll('.nav a').forEach((a) => a.onclick = (e) => { if (document.getElementById(a.dataset.tela)) { e.preventDefault(); Telas.mostrar(a.dataset.tela); } });
     document.body.prepend(el('<a class="skip" href="#conteudo">Ir para o conteúdo</a>'));
     document.querySelector('.skip').after(t);
@@ -869,9 +906,10 @@
     const nav = el(`<nav class="bottom-nav" aria-label="Navegação">${TELAS.filter((x) => x.barra !== false).map((x) => `<button type="button" data-tela="${x.id}">${icone(x.icone)}<span>${x.barraRotulo || x.rotulo}</span></button>`).join('')}</nav>`);
     nav.querySelectorAll('button').forEach((b) => b.onclick = () => Telas.mostrar(b.dataset.tela));
     document.body.appendChild(nav);
+    Tema.iniciar();
   }
 
-  window.App = { normMun, fmtCurto, emendasFoco, pctFundoPublico, norm, esc, titulo, el, fmtMoeda, fmtNum, icone, CARGOS_ORDEM, VAGAS, sitClasse, sitCurta, Dados, Store, Modal, Telas, TELAS, cardCandidato, tagsCandidato, fotoHtml, montarTopo, linkDivulga, linkPje, perfil, munFoco, setPerfil, temEmendasMun, concordancia, acharVotacao, disputouEm, fotoUrl, pctVotosEm,
+  window.App = { normMun, fmtCurto, emendasFoco, pctFundoPublico, norm, esc, titulo, el, fmtMoeda, fmtNum, icone, CARGOS_ORDEM, VAGAS, sitClasse, sitCurta, Dados, Store, Modal, Telas, TELAS, cardCandidato, tagsCandidato, fotoHtml, montarTopo, Tema, linkDivulga, linkPje, perfil, munFoco, setPerfil, temEmendasMun, concordancia, acharVotacao, disputouEm, fotoUrl, pctVotosEm,
     VOTO_ROT, votoTag, votoTagTexto, CASAS, fmtData, nomeMateria, linkMateria, ehVeto, LEGENDA_VETO, avisoPlacar,
     agremiacao, ehProporcional, chaveSigla, PROPORCIONAIS,
     Res, situacaoRes, explicarRes, agrNome, ordinal, pct };

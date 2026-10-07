@@ -1,51 +1,60 @@
 /* Meu Voto 2026 — sistema visual
-   Princípios: uma cor de ação (azul), cores semânticas só para situação/resultado, tipografia do sistema,
-   grade de 8px, contraste AA, alvos de toque >= 40px, foco visível, sem dependência de cor para significado. */
+   Paleta dos resultados oficiais do TSE: verde-petróleo como cor de ação, dourado só em destaques numéricos,
+   cores semânticas só para situação/resultado. Tipografia do sistema, grade de 8px, contraste AA,
+   alvos de toque >= 40px, foco visível, sem dependência de cor para significado.
+   Tema: segue o sistema; o botão sol/lua grava a escolha em <html data-theme="light|dark">. */
 :root {
-  --bg: #f5f6f8;
+  --bg: #f6f6f6;
   --surface: #ffffff;
-  --surface-2: #eef0f3;
-  --surface-3: #e3e6eb;
-  --border: #d5d9e0;
-  --border-strong: #b9c0ca;
-  --text: #171a20;
-  --text-2: #4b5563;
-  --text-3: #6b7280;
-  --primary: #1d4ed8;
-  --primary-hover: #1e40af;
-  --primary-soft: #e6edfd;
+  --surface-2: #f2f6f5;
+  --surface-3: #e7edef;
+  --border: #dde3e5;
+  --border-strong: #c0cbce;
+  --text: #242c35;
+  --text-2: #525b65;
+  --text-3: #646b74;
+  --primary: #154d47;
+  --primary-hover: #0f3a35;
+  --primary-soft: #e3f0ec;
   --primary-ink: #ffffff;
+  --accent: #8f7600;       /* dourado para texto (AA em texto grande) */
+  --accent-fill: #b29300;  /* dourado para barras e marcadores */
+  --accent-soft: #fff9df;
   --ok: #15803d;      --ok-soft: #e4f5ea;
   --warn: #a16207;    --warn-soft: #fdf3d7;
   --bad: #b91c1c;     --bad-soft: #fde8e8;
-  --local: #0f766e;   --local-soft: #dcf3f0;
-  --focus: #93b4ff;
+  --local: #2563a8;   --local-soft: #e3edf9;
+  --focus: #278878;
   --radius: 8px;
   --radius-lg: 12px;
-  --shadow: 0 1px 2px rgba(16, 24, 40, .06);
-  --shadow-lg: 0 12px 32px rgba(16, 24, 40, .18);
+  --shadow: 0 1px 2px rgba(18, 62, 55, .06);
+  --shadow-lg: 0 12px 32px rgba(18, 40, 38, .18);
   --font: "Segoe UI", Inter, Roboto, system-ui, -apple-system, Arial, sans-serif;
   --mono: "Cascadia Mono", Consolas, "Roboto Mono", ui-monospace, monospace;
   --header-h: 56px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1218; --surface: #171b23; --surface-2: #1f242e; --surface-3: #2a303c;
-    --border: #2f3542; --border-strong: #454c5a; --text: #e9ecf1; --text-2: #b4bcc9; --text-3: #8b94a3;
-    --primary: #6d95ff; --primary-hover: #8cabff; --primary-soft: #1b2745; --primary-ink: #0b1220;
+    --bg: #0e1514; --surface: #151e1d; --surface-2: #1c2726; --surface-3: #253231;
+    --border: #2a3836; --border-strong: #41524f; --text: #e6eeec; --text-2: #a9b8b5; --text-3: #8a9a97;
+    --primary: #4fc2a9; --primary-hover: #72d4bf; --primary-soft: #143430; --primary-ink: #06201c;
+    --accent: #e0c04a; --accent-fill: #d2ac00; --accent-soft: #2e2810;
     --ok: #4ade80; --ok-soft: #123324; --warn: #fbbf24; --warn-soft: #3a2c0b; --bad: #f87171; --bad-soft: #3d1414;
-    --local: #2dd4bf; --local-soft: #0f3330; --focus: #5b86ff;
+    --local: #7fb0ff; --local-soft: #172a45; --focus: #4fc2a9;
     --shadow: 0 1px 2px rgba(0,0,0,.5); --shadow-lg: 0 12px 32px rgba(0,0,0,.6);
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1218; --surface: #171b23; --surface-2: #1f242e; --surface-3: #2a303c;
-  --border: #2f3542; --border-strong: #454c5a; --text: #e9ecf1; --text-2: #b4bcc9; --text-3: #8b94a3;
-  --primary: #6d95ff; --primary-hover: #8cabff; --primary-soft: #1b2745; --primary-ink: #0b1220;
+  --bg: #0e1514; --surface: #151e1d; --surface-2: #1c2726; --surface-3: #253231;
+  --border: #2a3836; --border-strong: #41524f; --text: #e6eeec; --text-2: #a9b8b5; --text-3: #8a9a97;
+  --primary: #4fc2a9; --primary-hover: #72d4bf; --primary-soft: #143430; --primary-ink: #06201c;
+  --accent: #e0c04a; --accent-fill: #d2ac00; --accent-soft: #2e2810;
   --ok: #4ade80; --ok-soft: #123324; --warn: #fbbf24; --warn-soft: #3a2c0b; --bad: #f87171; --bad-soft: #3d1414;
-  --local: #2dd4bf; --local-soft: #0f3330; --focus: #5b86ff;
+  --local: #7fb0ff; --local-soft: #172a45; --focus: #4fc2a9;
   --shadow: 0 1px 2px rgba(0,0,0,.5); --shadow-lg: 0 12px 32px rgba(0,0,0,.6);
 }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 /* ---------- base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -95,6 +104,13 @@ table { border-collapse: collapse; }
 @media (max-width: 1120px) { .nav a { padding: 0 6px; gap: 5px; font-size: .88rem; } }
 @media (max-width: 1000px) { .nav a .ico { display: none; } .brand span.texto { display: none; } }
 @media (max-width: 760px) { .nav a { padding: 0 4px; font-size: .8rem; } }
+/* botão sol/lua: fica no topo também no celular (onde .nav some) */
+.tema-btn { flex: none; width: 40px; height: 40px; margin-left: 4px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: transparent; color: var(--text-2); cursor: pointer; }
+.tema-btn:hover { background: var(--surface-2); color: var(--text); }
+.tema-btn .ico { width: 20px; height: 20px; }
+.tema-opcoes { border: 0; padding: 0; margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.tema-opcoes legend { padding: 0; margin-bottom: 8px; }
+.tema-opcoes label { display: flex; align-items: center; gap: 8px; min-height: 40px; cursor: pointer; }
 .aviso { background: var(--warn-soft); color: var(--text); border-bottom: 1px solid var(--border); padding: 8px 16px; font-size: .9rem; text-align: center; }
 .aviso b { color: var(--warn); }
 
@@ -266,6 +282,7 @@ details.painel-filtros[open] > summary .seta { transform: rotate(90deg); }
 .bottom-nav button[aria-current="page"] { color: var(--primary); }
 @media (max-width: 640px) {
   .topbar .nav { display: none; }
+  .tema-btn { margin-left: auto; }
   .bottom-nav { display: grid; }
   .wrap { padding-bottom: 88px !important; }
 }

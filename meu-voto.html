@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>Meu voto — Meu Voto 2026</title>
+<meta name="theme-color" content="#154d47">
 <link rel="stylesheet" href="assets/styles.css">
+<script>try{var t=localStorage.getItem("meuvoto2026-tema");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <script src="data/manifest.js"></script>
 <script src="data/camara.js" onerror="this.remove()"></script>
 <script src="data/emendas.js" onerror="this.remove()"></script>
@@ -110,7 +112,15 @@
   </section>
 
   <section class="tela" id="tela-mais">
-    <div class="pagina-cab"><div><h1>Mais</h1><p class="muted small">Denúncias eleitorais e onde pesquisar fora do TSE.</p></div></div>
+    <div class="pagina-cab"><div><h1>Mais</h1><p class="muted small">Aparência, denúncias eleitorais e onde pesquisar fora do TSE.</p></div></div>
+    <section class="card no-print" style="margin-top:24px" aria-labelledby="rot-tema">
+      <h2 id="rot-tema">Aparência</h2>
+      <fieldset class="tema-opcoes"><legend class="small muted">Tema das telas. O botão de sol/lua no topo também troca.</legend>
+        <label><input type="radio" name="tema" value="auto"> Automático (igual ao sistema)</label>
+        <label><input type="radio" name="tema" value="light"> Claro</label>
+        <label><input type="radio" name="tema" value="dark"> Escuro</label>
+      </fieldset>
+    </section>
     <section class="card no-print painel-denuncias" id="painel-denuncias" style="margin-top:24px" hidden aria-labelledby="rot-denuncias">
       <h2 id="rot-denuncias">Denúncias eleitorais (aplicativo Pardal / TSE)</h2>
       <p class="small muted">O TSE publica as denúncias de propaganda irregular sem identificar o candidato — apenas UF, município, cargo, tipo e o número do processo no PJe quando a denúncia virou processo. Use os links do PJe para ver quem é o denunciado.</p>
