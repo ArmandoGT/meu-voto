@@ -137,6 +137,9 @@ def main():
         if os.path.exists(res_p):
             json_tags.append(json_tag("res-" + u, ler_js_var(res_p)))
             n_res += 1
+        map_p = os.path.join(DATA, "mapa_%s.js" % u)   # contorno dos municipios (scripts/build_mapas.py)
+        if os.path.exists(map_p):
+            json_tags.append(json_tag("mapa-" + u, ler_js_var(map_p)))
     cam_p = os.path.join(DATA, "camara.js")
     if os.path.exists(cam_p):
         dados_js.append(js_var("CAMARA", ler_js_var(cam_p)))
@@ -191,7 +194,8 @@ def main():
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#1d4ed8">
+<meta name="theme-color" content="#154d47">
+<script>try{{var t=localStorage.getItem("meuvoto2026-tema");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}}catch(e){{}}</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Meu Voto 2026 — {uf}</title>
