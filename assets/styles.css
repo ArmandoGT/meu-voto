@@ -303,6 +303,7 @@ details.painel-filtros[open] > summary .seta { transform: rotate(90deg); }
 .em-autor .nm { font-weight: 700; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
 .em-autor .sub { font-size: .82rem; color: var(--text-2); }
 .em-autor .barras { display: grid; gap: 3px; margin-top: 6px; }
+.em-autor .barra i { background: var(--accent-fill); }   /* destinado: dourado */
 .em-autor .barra i.pago { background: var(--ok); }
 .em-autor .val { text-align: right; font-family: var(--mono); font-weight: 700; white-space: nowrap; }
 .em-autor .val small { display: block; font-weight: 500; color: var(--text-2); font-family: var(--font); font-size: .75rem; }
@@ -333,6 +334,7 @@ details.painel-filtros[open] > summary .seta { transform: rotate(90deg); }
 .em-itens .nv { font-size: .7rem; }
 .legenda-barras { display: flex; gap: 14px; font-size: .78rem; color: var(--text-2); align-items: center; flex-wrap: wrap; }
 .legenda-barras i { display: inline-block; width: 18px; height: 8px; border-radius: 999px; background: var(--primary); margin-right: 5px; vertical-align: middle; }
+.legenda-barras i:not([class]) { background: var(--accent-fill); }
 .legenda-barras i.pago { background: var(--ok); }
 @media (max-width: 640px) {
   .em-autor { grid-template-columns: 24px minmax(0, 1fr) auto; }
