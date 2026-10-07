@@ -438,6 +438,15 @@ with sync_playwright() as p:
     pg.select_option("#rs-cargo", "Deputado Federal"); pg.wait_for_timeout(500)
     ok(pg.query_selector("#rot-rs-mais") is not None and pg.query_selector("#rot-rs-dist") is not None,
        "resultados SP: lista 'mais votos que um eleito' e distribuicao das vagas")
+    ok(pg.eval_on_selector("#rs-uf", "e => e.options[0].value") == "BR", "resultados: 'Brasil' e a 1a opcao do filtro Estado")
+    pg.select_option("#rs-uf", "BR"); pg.wait_for_timeout(2500)
+    ok(pg.eval_on_selector("#rs-cargo", "e => [...e.options].map(o => o.value)") == ["Presidente"] and pg.query_selector(".rs-lider") is not None,
+       "resultados Brasil: so o cargo Presidente, com o card do 1o colocado")
+    n_uf = pg.locator(".rs-mapa-estado path[style]").count()
+    ok(n_uf == 27 and pg.locator(".rs-mapa-cidade").count() == 0, "resultados Brasil: mapa com os 27 estados pintados e sem mapa de cidades (%d)" % n_uf)
+    pg.locator('.rs-mapa path[data-uf="RO"]').dispatch_event("click"); pg.wait_for_timeout(3000)
+    ok(pg.eval_on_selector("#rs-uf", "e => e.value") == "RO" and pg.eval_on_selector("#rs-cargo", "e => e.value") == "Presidente" and pg.locator(".rs-mapa-cidade path").count() == 52,
+       "resultados Brasil: clicar em RO no mapa abre o estado, mantem Presidente e mostra as 52 cidades")
     ok(not pg._erros, "resultados: sem erros de console %s" % pg._erros[:3])
     # ficha (outra pagina) -> bloco Eleicao 2026 -> resultado detalhado
     pg = nova(b)
@@ -452,6 +461,11 @@ with sync_playwright() as p:
         pg.goto(U); pg.wait_for_timeout(3000)
         pg.fill("#rs-texto", "2090"); pg.wait_for_timeout(300); pg.click("#rs-cand .cl-res"); pg.wait_for_timeout(400)
         ok(pg.evaluate(OVERFLOW) == "", "resultados %dpx: sem rolagem horizontal [%s]" % (w, pg.evaluate(OVERFLOW)))
+
+    pg = nova(b)
+    pg.goto((ROOT / "emendas.html").as_uri()); pg.wait_for_timeout(3000)
+    cores = pg.evaluate("[getComputedStyle(document.querySelector('.em-autor .barra i:not(.pago)')).backgroundColor, getComputedStyle(document.querySelector('.legenda-barras i:not([class])')).backgroundColor]")
+    ok(cores == ["rgb(178, 147, 0)"] * 2, "emendas: barra e legenda 'destinado' em dourado %s" % cores)
 
     print("3f. Tema claro/escuro: botao sol/lua, escolha salva, seletor na tela Mais")
     for esquema, outro in (("dark", "light"), ("light", "dark")):
