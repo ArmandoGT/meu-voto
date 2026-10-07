@@ -46,7 +46,12 @@ apenas Rondônia.
   (eleito, suplente, não eleito, 2º turno) e, para quem não se elegeu, **por que não foi eleito e quantos votos
   faltaram**. Mostra quem teve mais votos que um eleito e ficou de fora, o cálculo das vagas com os números
   reais (quociente eleitoral, quociente partidário, sobras) e estatísticas (participação por cidade, mais
-  votado em cada cidade, perfil dos eleitos, gasto declarado por voto).
+  votado em cada cidade, perfil dos eleitos, gasto declarado por voto). Para presidente, governador e senador,
+  o 1º colocado aparece em destaque e os demais em barras. Um **mapa do estado** mostra o mais votado em cada
+  município, com a cor do partido.
+- **Tema claro ou escuro**: botão de sol/lua no topo de todas as telas. A escolha fica salva; em Mais dá para
+  voltar ao automático, que segue o sistema. As cores seguem a paleta da divulgação de resultados do TSE
+  (verde-petróleo e dourado).
 - **Versão para celular** em um único arquivo HTML, que funciona sem internet.
 - **Testes automáticos** dos dados e da interface, incluindo auditoria cruzada com as APIs oficiais.
 
@@ -85,6 +90,8 @@ apenas Rondônia.
 | **Coligações** — para onde vai o voto: partido, federação ou coligação de cada candidato. | **Coligações** — as regras explicadas, as federações registradas no TSE e as fontes oficiais. |
 | ![Resultados: consulta de um candidato com votos por cidade](docs/img/resultados-candidato.png) | ![Resultados: como as vagas de deputado foram distribuídas](docs/img/resultados-vagas.png) |
 | **Resultados** — votos de cada candidato cidade por cidade, situação e por que não foi eleito. | **Resultados** — o cálculo das vagas com os números reais do TSE. |
+| ![Resultados: governador de RO, 1º colocado em destaque e demais em barras](docs/img/resultados-corrida.png) | ![Resultados: mapa de RO com o mais votado em cada município, tema escuro](docs/img/resultados-mapa.png) |
+| **Resultados** — cargos majoritários: 1º colocado em destaque e barras na cor do partido (tema claro). | **Resultados** — mapa do mais votado em cada cidade; clique abre o candidato (tema escuro). |
 
 Imagens geradas com os dados oficiais de setembro de 2026 e o Perfil em Ariquemes/RO. Na Emendas e na
 Colinha, nomes, fotos e números de candidatos foram borrados de propósito: as capturas ilustram o
@@ -282,6 +289,7 @@ python scripts/fetch_votacoes_federais.py --desde 2023 # só a legislatura atual
 python scripts/fetch_resultados.py            # site de divulgação do TSE -> raw/resultados2026/t1/ (~1 min)
 python scripts/baixar_tse.py --so votacao_candidato_munzona_2026   # votos por município e zona (316 MB)
 python scripts/build_resultados.py            # -> data/resultados_XX.js (27 UFs + BR, ~1 min)
+python scripts/build_mapas.py                 # contorno dos municípios (IBGE) -> data/mapa_XX.js (27 UFs, ~800 KB)
 python scripts/fetch_resultados.py --turno 2  # depois de 25/10 (2º turno)
 ```
 
@@ -297,6 +305,11 @@ python scripts/fetch_resultados.py --turno 2  # depois de 25/10 (2º turno)
   for idêntico ao do TSE** (quociente, vagas de cada lista e eleitos). As explicações e o "quantos votos
   faltaram" só são gerados sobre esse cálculo conferido. Cargo que o TSE ainda não proclamou (ex.: "Aguarde
   reprocessamento da eleição") aparece como **projeção**, com aviso.
+- **Mapa**: `build_mapas.py` baixa a malha municipal do IBGE (API de malhas, qualidade mínima) uma vez para
+  `raw/malhas/`, converte cada município para o código do TSE (tabela `municipio_tse_ibge`) e grava caminhos SVG
+  já projetados. Cada cidade é pintada com a cor do partido do mais votado: quanto mais forte a cor, maior a fatia
+  dele nos votos nominais. A sigla está sempre escrita ao lado. As cores dos partidos partem das usadas pelo
+  apurador [eleicoes.3ree.org](https://github.com/gabrielmcv/TSE-Apurador-eleicoes) (MIT).
 - O % dos votos válidos segue o do TSE: quando há votos anulados sub judice, a base inclui esses votos (é assim que
   o TSE decide se há maioria absoluta no 1º turno).
 
@@ -309,7 +322,7 @@ python scripts/build_mobile.py --uf MT       # outra UF
 ```
 
 ```
-python scripts/build_mobile.py --todas       # meu-voto-mobile-brasil.html: todas as UFs (~104 MB com os resultados)
+python scripts/build_mobile.py --todas       # meu-voto-mobile-brasil.html: todas as UFs (~105 MB com os resultados e os mapas)
 ```
 
 Um arquivo só, sem dependências: funciona em qualquer navegador de celular sem internet. Navegação inferior
@@ -343,7 +356,8 @@ python scripts\testes\rodar_testes.py --cruzado  # tudo + auditoria cruzada com 
 - `teste_ui.py` — abre o sistema no Edge (sem janela): pesquisa, todas as abas e critérios, **todas as fichas
   de RO e presidente**, tela Emendas em todos os municípios e filtros, tela Coligações (deputado federado,
   governador, senador e grupos de cada cargo), tela Resultados (consulta de candidato, ordem das cidades,
-  explicações, troca de estado, link da ficha), versão celular, funcionamento sem os
+  explicações, troca de estado, link da ficha, card do 1º colocado, mapa e clique no mapa), **tema claro/escuro**
+  (botão, escolha salva entre as páginas, volta ao automático em Mais, partindo do sistema em claro e em escuro), versão celular, funcionamento sem os
   dados opcionais, **impressão da colinha em PDF A4** (salvo em `scripts/testes/saida/colinha.pdf`) e
   **celulares emulados** (Pixel 7, iPhone 13, Galaxy S9+, iPhone SE: toque, fonte mínima, alvos de toque,
   sem rolagem lateral). Screenshots em `scripts/testes/saida/`.
@@ -351,7 +365,7 @@ python scripts\testes\rodar_testes.py --cruzado  # tudo + auditoria cruzada com 
   gerados contra as APIs oficiais (SAPL da ALE-RO, Câmara, Senado) e o TSE, e compara os cálculos feitos no
   navegador com os feitos em Python. Relatório em `scripts/testes/saida/auditoria_cruzada.md`.
 
-Última rodada (06/10/2026, com os resultados do 1º turno): dados 116 OK e interface 215 OK, sem falhas. Os
+Última rodada (06/10/2026, com os resultados do 1º turno): dados 116 OK e interface 233 OK, sem falhas. Os
 avisos foram só de atualidade (PE ainda sem proclamação do TSE; base de candidatos e emendas de alguns dias atrás).
 Última auditoria cruzada (24/09/2026): 32 verificações OK, nenhuma falha e 1 alerta que vem da própria fonte
 (placar de um veto de 2017 no SAPL).
@@ -410,7 +424,13 @@ estaduais), **DivulgaCandContas** (doações e gastos de campanha), **PJe/TSE** 
 
 Sem emojis; ícones em SVG com texto ao lado. Contraste AA, foco visível, alvos de toque de 40 px, navegação
 por teclado na ficha (Tab preso no diálogo, Esc fecha, foco volta ao ponto de origem), rótulos em todos os
-campos, `aria-pressed` nos botões de favorito/escolha, tema claro/escuro automático, impressão só da cola.
+campos, `aria-pressed` nos botões de favorito/escolha, impressão só da cola.
+
+**Tema**: segue o sistema (`prefers-color-scheme`) até o eleitor tocar no botão de sol/lua do topo. A escolha fica
+em `localStorage['meuvoto2026-tema']`, separada dos dados do voto (o "Limpar" e o Exportar não mexem nela), e é
+aplicada por um script curto no `<head>` antes de a página aparecer, sem piscar. Em **Mais → Aparência** dá para
+voltar ao automático. As cores (tokens em `assets/styles.css`) seguem a paleta da divulgação de resultados do TSE:
+verde-petróleo `#154d47` como cor de ação e dourado só em números de destaque, com contraste AA nos dois temas.
 
 ## Como o sistema identifica "vínculo com o seu município"
 
@@ -464,6 +484,7 @@ Todas públicas e oficiais. O projeto é independente e não tem vínculo com ne
 - **Assembleia Legislativa de Rondônia** — SAPL: <https://sapl.al.ro.leg.br/>
 - **Portal da Transparência (CGU)** — emendas parlamentares federais: <https://portaldatransparencia.gov.br/emendas>
 - **Portal da Transparência do Governo de Rondônia** — emendas estaduais: <https://transparencia.ro.gov.br/emenda>
+- **IBGE** — malha municipal (mapa da tela Resultados): <https://servicodados.ibge.gov.br/api/docs/malhas?versao=3>
 - **Regras de coligação e federação** (tela Coligações): Emenda Constitucional 97/2017, Lei 9.504/1997, Lei
   14.208/2021 e Código Eleitoral em <https://www.planalto.gov.br/>; decisões do STF (ADIs 7021, 7228, 7263 e 7325);
   lista de federações do TSE: <https://www.tse.jus.br/partidos/federacoes-registradas-no-tse>
@@ -476,10 +497,10 @@ README.md · LICENSE (MIT) · .gitignore · PROXIMOS-PASSOS.md (estado do projet
 docs/img/  capturas de tela usadas no README
 assets/   styles.css · app.js (dados, storage, modal) · busca.js · meu-voto.js (critérios) · emendas.js · votacoes.js · coligacoes.js · perfil.js
 data/     manifest.js · cand_BR.js · cand_RO.js · ... · camara.js · emendas.js · emendas_alias.json · alero.js · alero_declaracoes.json
-          alero_alias.json (opcional) · votacoes_federais.js · denuncias.js · municipios.js
+          alero_alias.json (opcional) · votacoes_federais.js · denuncias.js · municipios.js · resultados_XX.js · mapa_XX.js
           fotos/ · propostas/ · certidoes/  (gerados)
-raw/      ZIPs do TSE (baixar_tse.py) · EmendasParlamentares.zip · emendas_ro_estaduais.csv · alero_atas/
-scripts/  atualizar_tudo.py · baixar_tse.py · build_data.py · fetch_camara.py · fetch_emendas.py · fetch_alero.py · fetch_alero_atas.py · ocr_windows.ps1 · fetch_votacoes_federais.py · build_municipios.py · build_mobile.py
+raw/      ZIPs do TSE (baixar_tse.py) · EmendasParlamentares.zip · emendas_ro_estaduais.csv · alero_atas/ · malhas/ (IBGE)
+scripts/  atualizar_tudo.py · baixar_tse.py · build_data.py · fetch_camara.py · fetch_emendas.py · fetch_alero.py · fetch_alero_atas.py · ocr_windows.ps1 · fetch_votacoes_federais.py · build_municipios.py · fetch_resultados.py · build_resultados.py · build_mapas.py · build_mobile.py
           testes/ (rodar_testes.py · teste_dados.py · teste_ui.py · teste_cruzado.py · saida/)
 mobile/   meu-voto-mobile.html · meu-voto-mobile-brasil.html (gerados)
 logs/     registros das coletas e dos testes · atas_posicoes.md (posições achadas nas atas, para conferir)
