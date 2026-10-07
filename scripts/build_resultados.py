@@ -412,6 +412,7 @@ def main():
     votos, gerado_mz = votos_munzona(os.path.join(RAW, "votacao_candidato_munzona_2026.zip"), ufs)
 
     pres_uf = {}     # votos de presidente por UF (p/ RES_BR)
+    estados = {"Governador": {}, "Senador": {}}   # resumo por UF (3 mais votados) p/ o mapa do Brasil desses cargos
     pres_mun = {}    # sq -> {codTSE: votos} de todas as UFs (site do TSE, municipio a municipio)
     arq_pm = os.path.join(pasta, "pres_mun.json")
     if os.path.exists(arq_pm):
@@ -437,6 +438,12 @@ def main():
             doc = ler_json(arq)
             res["meta"].update({"dg": doc.get("dg"), "hg": doc.get("hg"), "dt": doc.get("dt"), "ht": doc.get("ht")})
             res["cargos"][NOME_CARGO[cd]] = cargo_resultado(doc, votos.get(uf, {}).get(cd))
+        for nome_c, resumo in estados.items():
+            blc = res["cargos"].get(nome_c)
+            if blc:
+                ordem = sorted(blc["cand"].items(), key=lambda x: -x[1]["v"])[:3]
+                resumo[uf] = {"base": blc["tot"].get("baseMaioria") or blc["tot"]["validos"], "oficial": blc.get("oficial"),
+                              "c": [dict({c: k[c] for c in ("n", "nome", "sg", "v", "st", "dvt", "e", "pe", "p2") if c in k}, sq=sq) for sq, k in ordem]}
         arq = os.path.join(pasta, "%s-c0001-e%06d-u.json" % (u, fed))
         if os.path.exists(arq):
             doc = ler_json(arq)
@@ -459,7 +466,7 @@ def main():
         muns_br = {m: [nome, uf] for m, (uf, nome, _) in munis.items()}
         res = {"meta": {"uf": "BR", "turno": a.turno, "munzona": gerado_mz, "dg": doc.get("dg"), "hg": doc.get("hg"),
                         "dt": doc.get("dt"), "ht": doc.get("ht")},
-               "muns": muns_br, "cargos": {"Presidente": bl}}
+               "muns": muns_br, "cargos": {"Presidente": bl}, "estados": estados}
         write_js(os.path.join(DATA, "resultados_BR.js"), "RES_BR", res)
         print("  BR: Presidente, %d UFs + exterior, %d municipios" % (len(pres_uf), len(muns_br)))
     print("Pronto em %.0fs" % (time.time() - t0))
