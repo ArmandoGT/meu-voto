@@ -421,6 +421,15 @@ with sync_playwright() as p:
        "resultados: Jonatas Franca (Republicanos sem vaga) explica os 80% e quantos votos faltaram")
     pg.select_option("#rs-cargo", "Governador"); pg.wait_for_timeout(300)
     ok("Eleito" in pg.inner_text("section[aria-labelledby=rot-rs-el]"), "resultados: governador de RO eleito no 1o turno")
+    ok(pg.query_selector(".rs-lider") is not None and "56,86%" in pg.inner_text(".rs-lider-pct") and pg.locator(".rs-barras li").count() >= 3,
+       "resultados: card do lider (Governador RO, 56,86%) e barras dos demais")
+    cor = pg.eval_on_selector(".rs-lider .ponto-partido", "e => getComputedStyle(e).backgroundColor")
+    ok(cor == "rgb(0, 92, 169)", "resultados: cor do PL no ponto do partido (%s)" % cor)
+    n_map = pg.locator(".rs-mapa path").count()
+    ok(n_map == 52 and pg.locator(".rs-mapa path[data-sq]").count() == 52, "resultados: mapa de RO com as 52 cidades pintadas (%d)" % n_map)
+    pg.locator(".rs-mapa path[data-sq]").first.dispatch_event("click"); pg.wait_for_timeout(500)
+    ok(pg.query_selector(".rs-cand") is not None, "resultados: clicar numa cidade do mapa abre o mais votado")
+    pg.click(".rs-voltar")
     pg.select_option("#rs-cargo", "Presidente"); pg.wait_for_timeout(500)
     ok("2º turno" in pg.inner_text("section[aria-labelledby=rot-rs-el]") and pg.query_selector("#rot-rs-uf") is not None,
        "resultados: presidente com 2o turno e tabela por estado")
@@ -443,6 +452,31 @@ with sync_playwright() as p:
         pg.goto(U); pg.wait_for_timeout(3000)
         pg.fill("#rs-texto", "2090"); pg.wait_for_timeout(300); pg.click("#rs-cand .cl-res"); pg.wait_for_timeout(400)
         ok(pg.evaluate(OVERFLOW) == "", "resultados %dpx: sem rolagem horizontal [%s]" % (w, pg.evaluate(OVERFLOW)))
+
+    print("3f. Tema claro/escuro: botao sol/lua, escolha salva, seletor na tela Mais")
+    for esquema, outro in (("dark", "light"), ("light", "dark")):
+        ctx = b.new_context(viewport={"width": 1280, "height": 900}, color_scheme=esquema)
+        pg = ctx.new_page(); erros = []
+        pg.on("pageerror", lambda e: erros.append(str(e)))
+        pg.goto((ROOT / "index.html").as_uri()); pg.wait_for_timeout(1500)
+        fundo0 = pg.evaluate("getComputedStyle(document.body).backgroundColor")
+        rot = pg.get_attribute(".tema-btn", "aria-label")
+        ok(rot == ("Usar tema claro" if esquema == "dark" else "Usar tema escuro"), "tema %s: botao com o rotulo certo (%s)" % (esquema, rot))
+        pg.click(".tema-btn"); pg.wait_for_timeout(200)
+        fundo1 = pg.evaluate("getComputedStyle(document.body).backgroundColor")
+        ok(pg.evaluate("document.documentElement.dataset.theme") == outro and fundo0 != fundo1, "tema %s: clicar troca para %s (%s -> %s)" % (esquema, outro, fundo0, fundo1))
+        pg.goto((ROOT / "resultados.html").as_uri()); pg.wait_for_timeout(1500)
+        ok(pg.evaluate("document.documentElement.dataset.theme") == outro, "tema %s: escolha vale nas outras paginas" % esquema)
+        pg.goto((ROOT / "meu-voto.html").as_uri() + "#mais"); pg.wait_for_timeout(1500)
+        ok(pg.is_checked('input[name="tema"][value="%s"]' % outro), "tema %s: tela Mais marca a escolha" % esquema)
+        pg.check('input[name="tema"][value="auto"]'); pg.wait_for_timeout(200)
+        ok(pg.evaluate("document.documentElement.dataset.theme || ''") == "" and pg.evaluate("localStorage.getItem('meuvoto2026-tema')") is None,
+           "tema %s: Automatico apaga a escolha e volta a seguir o sistema" % esquema)
+        ok(not erros, "tema %s: sem erros %s" % (esquema, erros[:2]))
+        ctx.close()
+    pg = nova(b, 390, 844)
+    pg.goto((ROOT / "index.html").as_uri()); pg.wait_for_timeout(1500)
+    ok(pg.is_visible(".tema-btn") and pg.evaluate(OVERFLOW) == "", "tema 390px: botao visivel no topo, sem rolagem horizontal")
 
     print("4. Versao mobile (arquivo unico)")
     pg = nova(b, 390, 844)
@@ -485,6 +519,8 @@ with sync_playwright() as p:
     pg.click(".ficha-res a"); pg.wait_for_timeout(500)
     ok(pg.eval_on_selector(".tela.ativa", "e => e.id") == "tela-resultados" and pg.query_selector("#tela-resultados .rs-cand") is not None,
        "mobile: link da ficha abre Resultados no candidato")
+    ok(pg.locator("#tela-resultados .rs-mapa path").count() == 52,
+       "mobile: mapa das cidades embutido no arquivo")
     ok(not pg._erros, "mobile: sem erros de console %s" % pg._erros[:3])
     pg.screenshot(path=str(SP / "t_mobile.png"))
 
@@ -592,7 +628,7 @@ with sync_playwright() as p:
             r = pg.evaluate("""(() => {
               const vis = [...document.querySelectorAll('.tela.ativa *, .bottom-nav *')].filter(e => e.offsetParent !== null && e.childNodes.length && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()));
               const fonte = Math.min(...vis.map(e => parseFloat(getComputedStyle(e).fontSize)));
-              const alvos = [...document.querySelectorAll('.tela.ativa button, .tela.ativa select, .tela.ativa input, .bottom-nav button')].filter(e => e.offsetParent !== null && e.type !== 'checkbox' && e.type !== 'range' && !e.closest('.sr-only') && !e.classList.contains('sr-only'));
+              const alvos = [...document.querySelectorAll('.tela.ativa button, .tela.ativa select, .tela.ativa input, .bottom-nav button')].filter(e => e.offsetParent !== null && e.type !== 'checkbox' && e.type !== 'radio' && e.type !== 'range' && !e.closest('.sr-only') && !e.classList.contains('sr-only'));
               const pequenos = alvos.filter(e => { const b = e.getBoundingClientRect(); return b.height < 30 || b.width < 30; }).map(e => (e.className || e.tagName) + ':' + Math.round(e.getBoundingClientRect().height));
               return { fonte, pequenos: [...new Set(pequenos)].slice(0, 4), overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1 };
             })()""")
